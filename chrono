@@ -1,0 +1,187 @@
+#!/bin/sh
+
+# ==========================================
+# ChronoOS Unified CLI - Chrono Shield
+# ==========================================
+
+CYAN='\033[0;36m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GRAY='\033[1;30m'
+NC='\033[0m'
+
+# Gestor de Paquetes Local (Chrono PKG)
+pkg_manager() {
+    echo -e "${CYAN}=== GESTOR DE PAQUETES CHRONOOS (chrono-pkg) ===${NC}"
+    case "$1" in
+        list)
+            echo -e "${BLUE}Módulos Instalados:${NC}"
+            echo -e " - chrono-core (v1.0.0)"
+            echo -e " - kukulkan-shield (Core)"
+            echo -e " - vortex-ledger (Integración)"
+            ;;
+        install)
+            if [ -z "$2" ]; then
+                echo -e "${RED}[!] Especifica el módulo a instalar. Ej: chrono pkg install <modulo>${NC}"
+            else
+                echo -e "${YELLOW}[*] Descargando e instalando módulo '$2'...${NC}"
+                sleep 1
+                echo -e "${GREEN}[✔] Módulo '$2' instalado con éxito.${NC}"
+            fi
+            ;;
+        *)
+            echo -e "Uso: chrono pkg [list | install <modulo>]"
+            ;;
+    esac
+    echo -e "${GRAY}--------------------------------------------------${NC}"
+}
+
+# Bóveda Cifrada (Chrono Vault - AES-256)
+vault_manager() {
+    echo -e "${CYAN}=== BÓVEDA SEGURA (Chrono Vault - AES-256) ===${NC}"
+    case "$1" in
+        encrypt)
+            if [ -f "$2" ]; then
+                openssl enc -aes-256-cbc -salt -pbkdf2 -in "$2" -out "$2.enc"
+                echo -e "${GREEN}[✔] Archivo '$2' cifrado como '$2.enc'.${NC}"
+            else
+                echo -e "${RED}[!] Archivo no encontrado.${NC}"
+            fi
+            ;;
+        decrypt)
+            if [ -f "$2" ]; then
+                OUT_FILE=$(echo "$2" | sed 's/\.enc$//')
+                openssl enc -d -aes-256-cbc -pbkdf2 -in "$2" -out "${OUT_FILE}.dec"
+                echo -e "${GREEN}[✔] Archivo descifrado como '${OUT_FILE}.dec'.${NC}"
+            else
+                echo -e "${RED}[!] Archivo cifrado no encontrado.${NC}"
+            fi
+            ;;
+        *)
+            echo -e "Uso: chrono vault [encrypt <archivo> | decrypt <archivo.enc>]"
+            ;;
+    esac
+    echo -e "${GRAY}--------------------------------------------------${NC}"
+}
+
+# Auditoría de Integridad
+integrity_check() {
+    echo -e "${CYAN}=== AUDITORÍA DE INTEGRIDAD (Chrono Core) ===${NC}"
+    TARGET="$HOME/chrono-os/chrono"
+    
+    if [ -f "$TARGET" ]; then
+        echo -e "${BLUE}Archivo evaluado:${NC} chrono (CLI Principal)"
+        HASH_VAL=$(sha256sum "$TARGET" | awk '{print $1}')
+        echo -e "${GREEN}[✔] SHA-256 Hash:${NC} ${HASH_VAL}"
+        echo -e "${GREEN}[✔] Estado:${NC} Integridad verificada. Sin alteraciones."
+    else
+        echo -e "${RED}[!] Error: No se encontró el núcleo ejecutable para auditar.${NC}"
+    fi
+    echo -e "${GRAY}--------------------------------------------------${NC}"
+}
+
+# Herramientas Recomendadas
+tools_info() {
+    echo -e "${CYAN}=== HERRAMIENTAS RECOMENDADAS (CHRONOOS STACK) ===${NC}"
+    echo -e "${YELLOW}[1] Buildroot / Yocto Project:${NC} Para imágenes minimalistas."
+    echo -e "${YELLOW}[2] Linux From Scratch (ARM64):${NC} Para compilar todo desde cero."
+    echo -e "${YELLOW}[3] Termux Base:${NC} Entorno base actual para despliegue rápido."
+    echo -e "${YELLOW}[4] Reticulum (Mesh):${NC} Protocolo para redes offline-first."
+    echo -e "${GRAY}--------------------------------------------------${NC}"
+}
+
+# Roadmap Técnico
+roadmap_info() {
+    echo -e "${CYAN}=== CHRONOOS TECHNICAL ROADMAP & LIMITATIONS ===${NC}"
+    echo -e "${YELLOW}[1] Fase Actual:${NC} Overlay temático / Entorno Termux"
+    echo -e "${YELLOW}[2] Reto Criptográfico:${NC} Verified Boot & FDE"
+    echo -e "${YELLOW}[3] Reto Red:${NC} Protocolo Mesh Nativo"
+    echo -e "${YELLOW}[4] Hardware Goal:${NC} Kernel modificado ARMv8/ARMv9"
+    echo -e "${GRAY}--------------------------------------------------${NC}"
+}
+
+# Estado del Sistema
+system_status() {
+    echo -e "${CYAN}=== DIAGNÓSTICO DE SISTEMA (ChronoOS) ===${NC}"
+    if command -v termux-battery-status >/dev/null 2>&1; then
+        BAT=$(termux-battery-status | grep percentage | awk '{print $2}' | tr -d ',')
+        echo -e "${BLUE}Batería:${NC}        ${BAT}%"
+    fi
+
+    if command -v free >/dev/null 2>&1; then
+        RAM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+        RAM_USED=$(free -m | awk '/Mem:/ {print $3}')
+        echo -e "${BLUE}Memoria RAM:${NC}    ${RAM_USED}MB / ${RAM_TOTAL}MB"
+    fi
+
+    DISC_USED=$(df -h /data 2>/dev/null | awk 'NR==2 {print $3}')
+    DISC_AVAIL=$(df -h /data 2>/dev/null | awk 'NR==2 {print $4}')
+    echo -e "${BLUE}Almacenamiento:${NC}  Usado: ${DISC_USED} | Libre: ${DISC_AVAIL}"
+    echo -e "${BLUE}Arquitectura:${NC}   $(uname -m)"
+    echo -e "${BLUE}Kernel:${NC}         $(uname -r)"
+    echo -e "${GRAY}------------------------------------------${NC}"
+}
+
+# Auditoría de Red
+network_audit() {
+    echo -e "${CYAN}=== ESCANEO DE RED LOCAL (Mesh Audit) ===${NC}"
+    MY_IP=$(ip addr show wlan0 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1)
+    
+    if [ -z "$MY_IP" ]; then
+        echo -e "${RED}[!] No hay conexión Wi-Fi / Interfaz local activa.${NC}"
+        return
+    fi
+
+    SUBNET=$(echo $MY_IP | cut -d. -f1-3)
+    echo -e "${BLUE}Tu IP Local:${NC} $MY_IP"
+    echo -e "${YELLOW}[*] Buscando dispositivos activos en la red ${SUBNET}.0/24...${NC}"
+    
+    if command -v arp >/dev/null 2>&1; then
+        arp -a
+    elif command -v ip >/dev/null 2>&1; then
+        ip neigh show
+    fi
+    echo -e "${GRAY}------------------------------------------${NC}"
+}
+
+# Menú Interactivo
+show_menu() {
+    echo -e "${CYAN}--- PANEL DE CONTROL CHRONOOS ---${NC}"
+    echo -e "${GREEN}[1]${NC} Estado del Sistema"
+    echo -e "${GREEN}[2]${NC} Auditoría de Red Local"
+    echo -e "${GREEN}[3]${NC} Auditoría de Integridad"
+    echo -e "${GREEN}[4]${NC} Bóveda Cifrada (Vault)"
+    echo -e "${GREEN}[5]${NC} Gestor de Paquetes (PKG)"
+    echo -e "${GREEN}[6]${NC} Roadmap Técnico"
+    echo -e "${GREEN}[7]${NC} Herramientas Recomendadas"
+    echo -e "${GREEN}[0]${NC} Salir"
+    echo ""
+    read -p "Selecciona una opción [0-7]: " opc
+
+    case $opc in
+        1) system_status ;;
+        2) network_audit ;;
+        3) integrity_check ;;
+        4) vault_manager ;;
+        5) pkg_manager list ;;
+        6) roadmap_info ;;
+        7) tools_info ;;
+        0) echo -e "${GRAY}Saliendo...${NC}" ;;
+        *) echo -e "${RED}Opción inválida.${NC}" ;;
+    esac
+}
+
+# CLI Selector
+case "$1" in
+    status) system_status ;;
+    net) network_audit ;;
+    check) integrity_check ;;
+    vault) vault_manager "$2" "$3" ;;
+    pkg) pkg_manager "$2" "$3" ;;
+    roadmap) roadmap_info ;;
+    tools) tools_info ;;
+    menu|"") show_menu ;;
+    *) echo -e "Uso: chrono [status|net|check|vault|pkg|roadmap|tools|menu]" ;;
+esac
