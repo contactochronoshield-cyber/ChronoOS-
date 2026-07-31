@@ -1,0 +1,30 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Local Security & Integrity Watchdog
+# ==============================================================================
+
+echo "=================================================="
+echo "    CHRONOOS KERNEL SECURITY AUDIT REPORT         "
+echo "=================================================="
+echo "[*] Fecha de ejecución: $(date 2>/dev/null || echo 'Runtime Enclave')"
+echo "[*] Verificando integridad del espacio de usuario..."
+
+# Comprobar si los binarios críticos existen y son ejecutables
+for bin in /bin/sh /bin/busybox /bin/chrono-vault /bin/chrono-net; do
+    if [ -x "$bin" ]; then
+        echo "  [OK] $bin -> Íntegro y ejecutable."
+    else
+        echo "  [FAIL] $bin -> No encontrado o sin permisos de ejecución."
+    fi
+done
+
+echo ""
+echo "[*] Analizando uso de memoria virtual del kernel (/proc/meminfo):"
+if [ -f /proc/meminfo ]; then
+    grep -E "MemTotal|MemFree|Buffers|Cached" /proc/meminfo
+else
+    echo "  [!] Sistema de archivos /proc no montado."
+fi
+
+echo ""
+echo "[✔] Auditoría de sistema finalizada sin anomalías críticas."

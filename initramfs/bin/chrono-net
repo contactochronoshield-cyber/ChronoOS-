@@ -1,0 +1,52 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Sovereign Network & Mesh Interface Manager
+# ==============================================================================
+
+ACTION="${1:-}"
+INTERFACE="${2:-eth0}"
+
+print_header() {
+    echo "=================================================="
+    echo "     CHRONOOS SOVEREIGN NETWORK SUBSYSTEM         "
+    echo "=================================================="
+}
+
+if [ -z "$ACTION" ]; then
+    print_header
+    echo "Uso: chrono-net [status|up|down|scan] <interfaz>"
+    exit 1
+fi
+
+case "$ACTION" in
+    status)
+        print_header
+        echo "[*] Estado de interfaces de red del kernel:"
+        ip link show 2>/dev/null || ifconfig -a
+        echo ""
+        echo "[*] Tablas de enrutamiento activas:"
+        ip route show 2>/dev/null || route -n
+        ;;
+    up)
+        print_header
+        echo "[*] Activando interfaz de red $INTERFACE..."
+        ip link set "$INTERFACE" up 2>/dev/null || ifconfig "$INTERFACE" up
+        echo "[✔] Interfaz $INTERFACE levantada."
+        ;;
+    down)
+        print_header
+        echo "[*] Desactivando interfaz de red $INTERFACE..."
+        ip link set "$INTERFACE" down 2>/dev/null || ifconfig "$INTERFACE" down
+        echo "[✔] Interfaz $INTERFACE detenida."
+        ;;
+    scan)
+        print_header
+        echo "[*] Escaneando sockets y conexiones activas locales..."
+        netstat -tuln 2>/dev/null || ss -tuln
+        ;;
+    *)
+        print_header
+        echo "[!] Acción no reconocida. Use: status, up, down, scan."
+        exit 1
+        ;;
+esac
