@@ -1,0 +1,21 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Native Init System (PID 1)
+# ==============================================================================
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+# Montar sistemas de archivos virtuales esenciales
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+
+clear
+echo "======================================================"
+echo "          CHRONOOS SOVEREIGN KERNEL BOOT              "
+echo "          Architecture: Bare-Metal / Native           "
+echo "======================================================"
+echo ""
+
+# Lanzar consola de comandos nativa del sistema operativo
+exec /bin/sh

@@ -1,23 +1,25 @@
-SHELL := /bin/bash
-PREFIX ?= /usr/local
-BINDIR ?= $(PREFIX)/bin
+# ==============================================================================
+# ChronoOS Master Build System
+# ==============================================================================
 
-.PHONY: all clean test install
+ARCH ?= x86_64
+OUT_DIR = build
+ISO_IMAGE = $(OUT_DIR)/chronoos-$(ARCH).iso
 
-all:
-	@echo "ChronoOS v7.0.0 Titanium - Build System"
-	@echo "Usa 'make install' para desplegar o 'make test' para verificar integridad."
+.PHONY: all clean prepare initramfs
 
-test:
-	@echo "[*] Ejecutando pruebas automatizadas básicas de scripts..."
-	@bash tests/run_tests.sh
+all: clean prepare initramfs
+	@echo "[+] Construcción de ChronoOS finalizada para $(ARCH)."
 
-install:
-	@echo "[*] Instalando ChronoOS en el sistema..."
-	@install -Dm755 core/chrono $(BINDIR)/chrono
-	@echo "[✔] Instalación completada con éxito."
+prepare:
+	@mkdir -p $(OUT_DIR)
+	@echo "[*] Preparando entorno de compilación cruzada..."
+
+initramfs:
+	@echo "[*] Empaquetando Initramfs nativo..."
+	@cd initramfs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../$(OUT_DIR)/initrd.img
+	@echo "[✔] Initramfs generado con éxito en $(OUT_DIR)/initrd.img"
 
 clean:
-	@echo "[*] Limpiando archivos temporales de compilación..."
-	@rm -rf build_root/* vault_store/*.tmp 2>/dev/null || true
-	@echo "[✔] Limpieza finalizada."
+	@echo "[*] Limpiando artefactos de compilación..."
+	@rm -rf $(OUT_DIR)
