@@ -1,7 +1,6 @@
 #!/bin/bin/sh
 export PATH=/bin:/sbin
 
-# Montar sistemas de archivos del kernel
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
@@ -11,8 +10,30 @@ echo "=================================================================="
 echo "          CHRONOOS KERNEL v7.5 - SOVEREIGN RUNTIME ACTIVE         "
 echo "          Arch: x86_64 | Init System: BusyBox Native PID 1        "
 echo "=================================================================="
-echo "Escribe 'help' para ver los comandos del sistema o 'poweroff' para apagar."
+echo "Herramientas de sistema disponibles en /bin:"
+echo "  - chrono-vault : Subsistema nativo de cifrado AES-256"
+echo "  - sh, ls, mount, ip, ps, reboot, poweroff"
 echo ""
 
-# Lanzar shell interactivo con control de errores del sistema
-exec /bin/sh
+while true; do
+    echo -n "chrono-os:/# "
+    read cmd
+    case "$cmd" in
+        help)
+            echo "Comandos internos:"
+            echo "  status         - Muestra el estado del runtime"
+            echo "  chrono-vault   - Ejecuta el gestor de bóveda"
+            echo "  clear          - Limpia la pantalla"
+            echo "  poweroff       - Apaga el sistema"
+            ;;
+        status)
+            echo "[✔] Kernel activo | Espacio de usuario: BusyBox + Binarios Propios"
+            ;;
+        clear)
+            clear
+            ;;
+        *)
+            eval "$cmd" 2>&1 || echo "Comando no reconocido."
+            ;;
+    esac
+done

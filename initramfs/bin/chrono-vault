@@ -1,0 +1,37 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Native Vault Engine (AES-256-CBC Sovereign Storage)
+# ==============================================================================
+
+ACTION="${1:-}"
+TARGET="${2:-}"
+
+echo "=================================================="
+echo "      CHRONOOS SOVEREIGN CRYPTOGRAPHIC VAULT      "
+echo "=================================================="
+
+if [ -z "$ACTION" ] || [ -z "$TARGET" ]; then
+    echo "Uso: chrono-vault [encrypt|decrypt] <archivo>"
+    exit 1
+fi
+
+if [ ! -f "$TARGET" ]; then
+    echo "[!] Error: El archivo '$TARGET' no existe."
+    exit 1
+fi
+
+if [ "$ACTION" = "encrypt" ]; then
+    echo "[*] Blindando archivo con AES-256-CBC y derivación de llave PBKDF2..."
+    openssl enc -aes-256-cbc -salt -pbkdf2 -in "$TARGET" -out "$TARGET.enc"
+    sha256sum "$TARGET.enc" > "$TARGET.enc.sha256"
+    echo "[✔] Archivo cifrado con éxito: $TARGET.enc"
+    echo "[✔] Firma SHA-256 generada: $TARGET.enc.sha256"
+elif [ "$ACTION" = "decrypt" ]; then
+    echo "[*] Descifrando archivo desde la bóveda segura..."
+    OUTPUT_FILE=$(echo "$TARGET" | sed 's/\.enc$//')
+    openssl enc -d -aes-256-cbc -pbkdf2 -in "$TARGET" -out "$OUTPUT_FILE"
+    echo "[✔] Archivo restaurado con éxito: $OUTPUT_FILE"
+else
+    echo "[!] Acción desconocida. Use 'encrypt' o 'decrypt'."
+    exit 1
+fi
