@@ -10,9 +10,11 @@ echo "=================================================================="
 echo "          CHRONOOS KERNEL v7.5 - SOVEREIGN RUNTIME ACTIVE         "
 echo "          Arch: x86_64 | Init System: BusyBox Native PID 1        "
 echo "=================================================================="
-echo "Herramientas de sistema disponibles en /bin:"
-echo "  - chrono-vault : Subsistema nativo de cifrado AES-256"
-echo "  - sh, ls, mount, ip, ps, reboot, poweroff"
+echo "Herramientas de sistema disponibles en /bin y /sbin:"
+echo "  - chrono-vault  : Subsistema nativo de cifrado AES-256-GCM"
+echo "  - chrono-net    : Gestor de red mesh e interfaces"
+echo "  - chrono-backup : Motor de respaldos locales cifrados"
+echo "  - chrono-audit  : Demonio de auditoría de seguridad del kernel"
 echo ""
 
 while true; do
@@ -21,13 +23,16 @@ while true; do
     case "$cmd" in
         help)
             echo "Comandos internos:"
-            echo "  status         - Muestra el estado del runtime"
-            echo "  chrono-vault   - Ejecuta el gestor de bóveda"
-            echo "  clear          - Limpia la pantalla"
-            echo "  poweroff       - Apaga el sistema"
+            echo "  status        - Muestra el estado del runtime"
+            echo "  chrono-vault  - Ejecuta el gestor de bóveda"
+            echo "  chrono-net    - Gestiona interfaces de red"
+            echo "  chrono-backup - Realiza respaldos cifrados"
+            echo "  chrono-audit  - Audita el estado del sistema"
+            echo "  clear         - Limpia la pantalla"
+            echo "  poweroff      - Apaga el sistema"
             ;;
         status)
-            echo "[✔] Kernel activo | Espacio de usuario: BusyBox + Binarios Propios"
+            echo "[✔] Kernel activo | Espacio de usuario: BusyBox + Subsistemas Propios"
             ;;
         clear)
             clear

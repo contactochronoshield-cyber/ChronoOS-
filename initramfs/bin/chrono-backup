@@ -1,0 +1,76 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Sovereign Local Backup & Snapshot Engine
+# ==============================================================================
+
+export PATH=/bin:/sbin
+
+ACTION="${1:-}"
+BACKUP_DIR="/mnt/vault_storage"
+
+print_header() {
+    echo "=================================================="
+    echo "    CHRONOOS SECURE BACKUP & SNAPSHOT SYSTEM      "
+    echo "=================================================="
+}
+
+if [ -z "$ACTION" ]; then
+    print_header
+    echo "Uso: chrono-backup [create|restore] <directorio_objetivo>"
+    exit 1
+fi
+
+TARGET_PATH="${2:-/etc}"
+
+if [ "$ACTION" = "create" ]; then
+    print_header
+    echo "[*] Generando respaldo comprimido de: $TARGET_PATH..."
+    
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S 2>/dev/null || echo "snapshot")
+    TARBALL="chrono_backup_$TIMESTAMP.tar.gz"
+    
+    # Crear archivo comprimido
+    if tar -czf "$TARBALL" "$TARGET_PATH" 2>/dev/null; then
+        echo "[✔] Respaldo empaquetado con éxito: $TARBALL"
+        
+        # Si el motor de bóveda está disponible, cifrarlo automáticamente
+        if [ -x /bin/chrono-vault ]; then
+            echo "[*] Blindando respaldo automáticamente con chrono-vault..."
+            chrono-vault encrypt "$TARBALL"
+        fi
+    else
+        echo "[!] Error crítico al generar el archivo tarball."
+        exit 1
+    fi
+
+elif [ "$ACTION" = "restore" ]; then
+    print_header
+    echo "[*] Restaurando respaldo desde contenedor cifrado..."
+    
+    if [ -z "$2" ]; then
+        echo "[!] Error: Debe especificar el archivo .enc de respaldo a restaurar."
+        exit 1
+    }
+    
+    if [ -x /bin/chrono-vault ]; then
+        echo "[*] Descifrando contenedor de respaldo..."
+        chrono-vault decrypt "$2"
+        RESTORE_TAR=$(echo "$2" | sed 's/\.enc$//')
+        
+        if [ -f "$RESTORE_TAR" ]; then
+            echo "[*] Descomprimiendo archivos en el sistema..."
+            tar -xzf "$RESTORE_TAR" -C /
+            echo "[✔] Sistema restaurado correctamente desde el respaldo."
+        else
+            echo "[!] Error: No se encontró el archivo descomprimible."
+            exit 1
+        fi
+    else
+        echo "[!] Error: El motor de bóveda no está disponible para descifrar."
+        exit 1
+    fi
+else
+    print_header
+    echo "[!] Acción no reconocida. Use 'create' o 'restore'."
+    exit 1
+fi
