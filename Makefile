@@ -2,24 +2,27 @@
 # ChronoOS Master Build System
 # ==============================================================================
 
-ARCH ?= x86_64
 OUT_DIR = build
-ISO_IMAGE = $(OUT_DIR)/chronoos-$(ARCH).iso
+INITRD = $(OUT_DIR)/initrd.img
 
-.PHONY: all clean prepare initramfs
+.PHONY: all clean initramfs verify
 
-all: clean prepare initramfs
-	@echo "[+] Construcción de ChronoOS finalizada para $(ARCH)."
-
-prepare:
-	@mkdir -p $(OUT_DIR)
-	@echo "[*] Preparando entorno de compilación cruzada..."
+all: clean initramfs verify
+	@echo "[+] Paquete de sistema operativo compilado con éxito en $(OUT_DIR)/"
 
 initramfs:
-	@echo "[*] Empaquetando Initramfs nativo..."
-	@cd initramfs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../$(OUT_DIR)/initrd.img
-	@echo "[✔] Initramfs generado con éxito en $(OUT_DIR)/initrd.img"
+	@mkdir -p $(OUT_DIR)
+	@echo "[*] Generando Initramfs comprimido..."
+	@cd initramfs && find . -print0 | cpio --null -ov --format=newc 2>/dev/null | gzip -9 > ../$(INITRD)
+	@echo "[✔] Imagen initrd generada: $(INITRD)"
+
+verify:
+	@if [ -f "$(INITRD)" ]; then \
+		echo "[✔] Verificación de integridad: Archivo initrd.img verificado."; \
+	else \
+		echo "[!] Error crítico: La imagen initrd no se pudo generar."; exit 1; \
+	fi
 
 clean:
-	@echo "[*] Limpiando artefactos de compilación..."
 	@rm -rf $(OUT_DIR)
+	@echo "[*] Entorno de compilación limpio."

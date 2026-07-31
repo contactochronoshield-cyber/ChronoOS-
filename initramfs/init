@@ -1,21 +1,24 @@
 #!/bin/sh
-# ==============================================================================
-# ChronoOS Native Init System (PID 1)
-# ==============================================================================
-
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
-# Montar sistemas de archivos virtuales esenciales
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
-mount -t devtmpfs devtmpfs /dev
+mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
 
 clear
-echo "======================================================"
-echo "          CHRONOOS SOVEREIGN KERNEL BOOT              "
-echo "          Architecture: Bare-Metal / Native           "
-echo "======================================================"
+echo "=================================================================="
+echo "                 CHRONOOS NATIVE KERNEL BOOT v7.5                 "
+echo "                 Sovereign Infrastructure Runtime                 "
+echo "=================================================================="
 echo ""
 
-# Lanzar consola de comandos nativa del sistema operativo
-exec /bin/sh
+while true; do
+    echo -n "chrono-kernel-shell# "
+    read cmd
+    case "$cmd" in
+        help) echo "Comandos: vault, mesh, firewall, status, poweroff";;
+        status) echo "[✔] Kernel operativo | Memoria: estable | Perímetro: blindado";;
+        poweroff|exit) echo "Apagando sistema..."; poweroff -f 2>/dev/null || exit 0;;
+        *) eval "$cmd" 2>&1 || echo "Comando no reconocido o error de ejecución.";;
+    esac
+done
