@@ -1,9 +1,9 @@
+cat << 'EOF' > core/chrono
 #!/usr/bin/env bash
 # ==============================================================================
 # ChronoOS Sovereign Enterprise Kernel & Userland v7.0.0 (Titanium Edition)
 # Chrono Shield Networks | Logic in mind. Hardware in hand.
-# Authors: Daniel Gonzales Martínez, Adrián, and the Chrono Shield Networks Team
-# (Bogotá -> Global Deployment)
+# Authors: Daniel Gonzales Martínez, Adrián Holaz, and the Chrono Shield Networks Team
 # ==============================================================================
 
 set -Eeuo pipefail
@@ -19,435 +19,97 @@ NC='\033[0m'
 
 CHRONO_HOME="$HOME/chrono-os"
 CONFIG_DIR="$HOME/.chrono"
-CONFIG_FILE="$CONFIG_DIR/config.json"
 LOG_FILE="$CONFIG_DIR/chrono_sovereign.log"
 VAULT_DIR="$CHRONO_HOME/vault_store"
-BUILD_DIR="$CHRONO_HOME/build_root"
-PLUGINS_DIR="$CHRONO_HOME/plugins"
-NETWORK_PROFILE="$CHRONO_HOME/net_state"
-KEYS_DIR="$CHRONO_HOME/crypto_keys"
 
-mkdir -p "$CONFIG_DIR" "$BUILD_DIR" "$VAULT_DIR" "$PLUGINS_DIR" "$NETWORK_PROFILE" "$KEYS_DIR"
-chmod 700 "$CONFIG_DIR" "$VAULT_DIR" "$KEYS_DIR"
-
-if [ ! -f "$CONFIG_FILE" ]; then
-    cat <<EOF > "$CONFIG_FILE"
-{
-  "enterprise": "Chrono Shield Networks",
-  "authors": [
-    "Daniel Gonzales Martínez",
-    "Adrián",
-    "Chrono Shield Networks Team"
-  ],
-  "base": "Bogota, Colombia",
-  "version": "7.0.0-Titanium",
-  "architecture": "Cybernetic-Sovereign-Mesh",
-  "encryption": "aes-256-cbc-pbkdf2"
-}
-EOF
-    chmod 600 "$CONFIG_FILE"
-fi
+mkdir -p "$CONFIG_DIR" "$VAULT_DIR"
 
 log_event() {
     local level="$1"
     local message="$2"
-    local timestamp
-    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[$timestamp] [CHRONO-$level] $message" >> "$LOG_FILE"
-    chmod 600 "$LOG_FILE" 2>/dev/null || true
-}
-
-error_handler() {
-    local exit_code=$?
-    log_event "ERROR" "Falla en línea $1 (Exit Code: $exit_code)"
-}
-trap 'error_handler $LINENO' ERR
-
-boot_animation() {
-    clear
-    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║         CHRONOOS SOVEREIGN ENTERPRISE KERNEL v7.0.0 (TITANIUM)     ║${NC}"
-    echo -e "${CYAN}║         Chrono Shield Networks | Zero-Telemetry Mesh Core          ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════╝${NC}"
-    echo -e "${BLUE} > Authors: Daniel Gonzales Martínez, Adrián & Chrono Shield Team ${NC}"
-    echo -e "${BLUE} > Base: Bogotá -> Global Deployment ${NC}"
-    echo -e "${GRAY} Loading kernel modules & zero-telemetry daemon... [ OK ]"
-    echo -e " Initializing AES-256-CBC cryptographic vault...   [ OK ]"
-    echo -e " Mounting sovereign userland & mesh sockets...       [ OK ]${NC}"
-    sleep 0.8
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [CHRONO-$level] $message" >> "$LOG_FILE"
 }
 
 sub_vault() {
-    echo -e "${CYAN}=== CHRONO SECURE VAULT (AES-256-CBC + SHA-256) ===${NC}"
-    echo " [1] Cifrar archivo o directorio con firma inmutable"
-    echo " [2] Descifrar elemento de la bóveda"
-    echo " [3] Listar elementos protegidos y verificar integridad"
-    echo " [0] Volver"
-    read -p "vault> " v_opt
-    case "$v_opt" in
-        1)
-            read -p "Ruta del recurso a blindar: " target
-            if [ -e "$target" ]; then
-                local name
-                name=$(basename "$target")
-                if [ -d "$target" ]; then
-                    tar -czf "$CHRONO_HOME/$name.tar.gz" "$target"
-                    openssl enc -aes-256-cbc -salt -pbkdf2 -in "$CHRONO_HOME/$name.tar.gz" -out "$VAULT_DIR/$name.tar.gz.enc"
-                    rm -f "$CHRONO_HOME/$name.tar.gz"
-                else
-                    openssl enc -aes-256-cbc -salt -pbkdf2 -in "$target" -out "$VAULT_DIR/$name.enc"
-                fi
-                sha256sum "$VAULT_DIR/"* > "$VAULT_DIR/integrity.sha256"
-                chmod 600 "$VAULT_DIR"/* 2>/dev/null || true
-                echo -e "${GREEN}[✔] Recurso cifrado y firmado criptográficamente en $VAULT_DIR${NC}"
-                log_event "SUCCESS" "Cifrado exitoso de $name"
-            else
-                echo -e "${RED}[!] La ruta no existe.${NC}"
-            fi
-            ;;
-        2)
-            ls -1 "$VAULT_DIR"
-            read -p "Nombre del archivo cifrado en bóveda: " enc_file
-            if [ -f "$VAULT_DIR/$enc_file" ]; then
-                local out_name
-                out_name=$(echo "$enc_file" | sed 's/\.enc$//')
-                openssl enc -d -aes-256-cbc -pbkdf2 -in "$VAULT_DIR/$enc_file" -out "$CHRONO_HOME/$out_name"
-                if [[ "$out_name" == *.tar.gz ]]; then
-                    tar -xzf "$CHRONO_HOME/$out_name" -C "$CHRONO_HOME/"
-                    rm -f "$CHRONO_HOME/$out_name"
-                fi
-                echo -e "${GREEN}[✔] Recurso restaurado en $CHRONO_HOME${NC}"
-                log_event "SUCCESS" "Descifrado exitoso de $enc_file"
-            else
-                echo -e "${RED}[!] Archivo no encontrado en la bóveda.${NC}"
-            fi
-            ;;
-        3)
-            echo -e "${MAGENTA}--- Elementos en Bóveda & Verificación SHA-256 ---${NC}"
-            ls -lh "$VAULT_DIR"
-            if [ -f "$VAULT_DIR/integrity.sha256" ]; then
-                echo ""
-                sha256sum -c "$VAULT_DIR/integrity.sha256" 2>/dev/null || echo "Verificación completada."
-            fi
-            ;;
-    esac
-    read -p "Presiona Enter para continuar..."
-}
-
-sub_radar() {
-    echo -e "${GREEN}=== CHRONO RADAR (Topología y Perímetro Mesh) ===${NC}"
-    echo -e "${CYAN} Escaneando interfaces de red locales y nodos activos...${NC}"
-    echo ""
-    echo -e " [TARGET] Localhost Loopback (127.0.0.1) ......... [ SECURE ]"
-    echo -e " [TARGET] Mesh Gateway Interface .................. [ ACTIVE ]"
-    if command -v ip >/dev/null 2>&1; then
-        ip route show | grep default || echo " [INFO] Red por defecto activa."
-    fi
-    echo ""
-    echo -e "${YELLOW}Topología ASCII Radar:${NC}"
-    echo "       (Node-Alpha)"
-    echo "            | "
-    echo "     [CHRONO-CORE] --- (Encrypted Mesh Tunnel)"
-    echo "            | "
-    echo "       (Node-Bogota)"
-    log_event "INFO" "ChronoRadar ejecutado."
-    read -p "Presiona Enter para continuar..."
-}
-
-sub_docker_mgr() {
-    echo -e "${BLUE}=== CHRONO CONTAINER DEPLOYER (Zero-Telemetry) ===${NC}"
-    echo " [1] Listar contenedores activos (Docker / Podman)"
-    echo " [2] Desplegar nodo web soberano de prueba (Nginx ligero)"
-    echo " [0] Volver"
-    read -p "container> " c_opt
-    case "$c_opt" in
-        1)
-            if command -v docker >/dev/null 2>&1; then
-                docker ps -a
-            else
-                echo -e "${RED}[!] Docker no detectado en este entorno userland.${NC}"
-            fi
-            ;;
-        2)
-            if command -v docker >/dev/null 2>&1; then
-                docker run -d --name chrono-web-node -p 8080:80 nginx:alpine || true
-                echo -e "${GREEN}[✔] Nodo web corporativo desplegado en puerto 8080.${NC}"
-            else
-                echo -e "${RED}[!] Motor de contenedores no disponible.${NC}"
-            fi
-            ;;
-    esac
-    read -p "Presiona Enter para continuar..."
-}
-
-sub_keys() {
-    echo -e "${MAGENTA}=== CHRONO KEY (Generador de Identidades SSH/Ed25519) ===${NC}"
-    read -p "Introduce tu email corporativo o personal para la llave: " user_mail
-    if [ -n "$user_mail" ]; then
-        local key_name="$KEYS_DIR/chrono_ed25519"
-        ssh-keygen -t ed25519 -C "$user_mail [Chrono Shield Networks]" -f "$key_name" -N ""
-        echo -e "${GREEN}[✔] Par de llaves criptográficas generado en $KEYS_DIR${NC}"
-        cat "$key_name.pub"
-        log_event "SUCCESS" "Generación de llaves Ed25519 para $user_mail"
+    echo -e "${CYAN}=== CHRONO SECURE VAULT (AES-256-CBC Real) ===${NC}"
+    read -p "Ruta del archivo a blindar: " target
+    if [ -f "$target" ]; then
+        local name=$(basename "$target")
+        openssl enc -aes-256-cbc -salt -pbkdf2 -in "$target" -out "$VAULT_DIR/$name.enc"
+        sha256sum "$VAULT_DIR/$name.enc" > "$VAULT_DIR/$name.sha256"
+        echo -e "${GREEN}[✔] Archivo cifrado de forma real y firmado en $VAULT_DIR${NC}"
+        log_event "SUCCESS" "Cifrado real de $name"
     else
-        echo -e "${RED}[!] Email requerido.${NC}"
+        echo -e "${RED}[!] Archivo no encontrado.${NC}"
     fi
     read -p "Presiona Enter para continuar..."
 }
 
-sub_cyber_deck() {
-    clear
-    echo -e "${GREEN}"
-    echo "Iniciando Cyber Deck Matrix Stream... Presiona Ctrl+C para salir."
-    sleep 1
-    while true; do
-        echo "01000011 01001000 01010010 01001111 01001110 01001111 01010011 01001001 01010011 - SHIELD ACTIVE"
-        echo "AUTH: Daniel Gonzales Martínez & Adrian | MESH_NODE_OK | VAULT_SECURE"
-        sleep 0.1
-    done
+sub_firewall() {
+    echo -e "${YELLOW}=== CHRONO KERNEL FIREWALL & TELEMETRY BLOCKER ===${NC}"
+    if [ -f "$CHRONO_HOME/core/firewall.sh" ]; then
+        sudo bash "$CHRONO_HOME/core/firewall.sh"
+    else
+        echo -e "${RED}[!] Script de firewall no encontrado en core/${NC}"
+    fi
+    read -p "Presiona Enter para continuar..."
+}
+
+sub_mesh() {
+    echo -e "${MAGENTA}=== CHRONO REAL MESH NETWORK STACK ===${NC}"
+    if [ -f "$CHRONO_HOME/core/mesh_node.sh" ]; then
+        bash "$CHRONO_HOME/core/mesh_node.sh"
+    else
+        echo -e "${RED}[!] Módulo mesh no encontrado.${NC}"
+    fi
+    read -p "Presiona Enter para continuar..."
 }
 
 sub_web_dashboard() {
-    echo -e "${CYAN}=== CHRONO WEB (Dashboard Gráfico Ciberpunk) ===${NC}"
-    echo -e "${GREEN}[*] Desplegando servidor web local soberano en puerto 8080...${NC}"
-    
-    local web_dir="$CHRONO_HOME/web_panel"
+    echo -e "${CYAN}=== CHRONO WEB (Dashboard Gráfico HTTP) ===${NC}"
+    local web_dir="$CHRONO_HOME/web"
     mkdir -p "$web_dir"
-    
-    cat << 'EOF' > "$web_dir/index.html"
+    cat << 'HTML' > "$web_dir/index.html"
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>ChronoOS v7.0 - Sovereign Dashboard</title>
-    <style>
-        body { background-color: #05050a; color: #00ffcc; font-family: 'Courier New', monospace; padding: 20px; }
-        .card { border: 1px solid #00ffcc; padding: 15px; margin-bottom: 15px; background: rgba(0,255,204,0.05); box-shadow: 0 0 10px rgba(0,255,204,0.2); }
-        h1 { color: #38bdf8; text-shadow: 0 0 5px rgba(56,189,248,0.5); }
-        .btn { background: #00ffcc; color: #05050a; padding: 8px 15px; border: none; font-weight: bold; cursor: pointer; }
-        .btn:hover { background: #38bdf8; }
-    </style>
+<head><meta charset="UTF-8"><title>ChronoOS Sovereign Panel</title>
+<style>body{background:#05050a;color:#00ffcc;font-family:monospace;padding:20px;}</style>
 </head>
 <body>
-    <h1>CHRONOOS v7.0 - TITANIUM WEB PANEL</h1>
-    <p>Chrono Shield Networks | Logic in mind. Hardware in hand.</p>
-    <div class="card">
-        <h3>Estado del Sistema</h3>
-        <p>Core: <strong>Activo & Blindado (AES-256)</strong></p>
-        <p>Telemetría: <strong>BLOQUEADA (0%)</strong></p>
-        <p>Autores: Daniel Gonzales Martínez & Adrián</p>
-        <button class="btn" onclick="alert('¡Perímetro seguro y verificado!')">Verificar Integridad</button>
-    </div>
+    <h1>CHRONOOS v7.0 - REAL ENTERPRISE NODE</h1>
+    <p>Estado: <strong>Activo & Blindado</strong> | Autores: Daniel Gonzales Martínez & Adrián Holaz</p>
 </body>
 </html>
-EOF
-
-    echo -e "${GREEN}[✔] Panel web generado en $web_dir${NC}"
-    echo -e "${YELLOW}Iniciando servidor HTTP local en http://localhost:8080 ... (Presiona Ctrl+C para salir)${NC}"
-    
+HTML
     cd "$web_dir"
-    if command -v python3 >/dev/null 2>&1; then
-        python3 -m http.server 8080 || true
-    else
-        echo -e "${RED}[!] Python3 no disponible para levantar el servidor web.${NC}"
-    fi
-    read -p "Presiona Enter para continuar..."
+    python3 -m http.server 8080 &
+    echo -e "${GREEN}[✔] Servidor web real corriendo en http://localhost:8080${NC}"
+    read -p "Presiona Enter para detener el servidor y continuar..."
+    pkill -f "http.server 8080" || true
 }
 
-sub_network() {
-    echo -e "${MAGENTA}=== CHRONO SOVEREIGN NETWORK & MESH STACK ===${NC}"
-    echo " [1] Diagnóstico de Sockets Activos (ss/netstat)"
-    echo " [2] Inicializar ID de Nodo Mesh Off-Grid"
-    echo " [3] Escaneo de Perímetro Local (Nmap Hardened)"
-    echo " [0] Volver"
-    read -p "mesh> " net_opt
-    case "$net_opt" in
-        1) ss -tuln ;;
-        2)
-            echo -e "${GREEN}[*] Inicializando interfaz virtual mesh de Chrono Shield...${NC}"
-            echo "ChronoNode-$(hostname)-$(date +%s)" > "$NETWORK_PROFILE/node_id.dat"
-            cat "$NETWORK_PROFILE/node_id.dat"
-            ;;
-        3)
-            read -p "Introduce IP objetivo o localhost: " target
-            if [[ "$target" =~ ^[a-zA-Z0-9.-]+$ ]]; then
-                nmap -sV -T4 "$target"
-            else
-                echo -e "${RED}[!] Objetivo inválido.${NC}"
-            fi
-            ;;
+while true; do
+    clear
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║         CHRONOOS – SOVEREIGN OS v7.0.0 (TITANIUM REAL EDITION)     ║${NC} Stripped Simulations. Pure Engineering.
+    echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${GREEN}[1]${NC} Bóveda Cifrada Real (AES-256 + SHA-256)"
+    echo -e "${GREEN}[2]${NC} Firewall Real y Bloqueo de Telemetría (Kernel iptables)"
+    echo -e "${GREEN}[3]${NC} Red P2P / Mesh Real (WireGuard Stack)"
+    echo -e "${GREEN}[4]${NC} Dashboard Web HTTP Local"
+    echo -e "${GREEN}[5]${NC} Ver Logs de Auditoría Real"
+    echo -e "${GREEN}[0]${NC} Salir"
+    read -p "chrono-shell> " opc
+
+    case "$opc`" in
+        1*) sub_vault ;;
+        2*) sub_firewall ;;
+        3*) sub_mesh ;;
+        4*) sub_web_dashboard ;;
+        5*) tail -n 25 "$LOG_FILE" 2>/dev/null || echo "Sin logs."; read -p "Enter..." ;;
+        0*) exit 0 ;;
+        *) echo "Opción inválida."; sleep 1 ;;
     esac
-    read -p "Presiona Enter para continuar..."
-}
-
-sub_guardians() {
-    echo -e "${YELLOW}=== CHRONO GUARDIANS ENGINE (Anomalías & Telemetría) ===${NC}"
-    echo " [1] Escanear procesos sospechosos en memoria"
-    echo " [2] Ver estado de telemetría de red local"
-    echo " [3] Simular reporte de alerta de nodos"
-    echo " [0] Volver"
-    read -p "guardians> " g_opt
-    case "$g_opt" in
-        1)
-            echo -e "${GREEN}[*] Analizando procesos activos del usuario...${NC}"
-            ps aux | head -n 20
-            ;;
-        2)
-            echo -e "${GREEN}[*] Verificando interfaces y tráfico de red activo...${NC}"
-            if command -v ip >/dev/null 2>&1; then ip a; else ifconfig; fi
-            ;;
-        3)
-            echo -e "${MAGENTA}[!] Alerta de prueba ChronoGuardians: Nodos descentralizados operando con normalidad.${NC}"
-            log_event "INFO" "Simulación de alerta de nodos ejecutada."
-            ;;
-    esac
-    read -p "Presiona Enter para continuar..."
-}
-
-sub_compiler() {
-    echo -e "${CYAN}=== CHRONO SOVEREIGN OS COMPILER (Rootfs Builder) ===${NC}"
-    echo " [1] Construir Rootfs base Debian/Linux aislado"
-    echo " [2] Empaquetar imagen corporativa (.tar.gz)"
-    echo " [3] Generar firmas de integridad SHA-256 del sistema"
-    echo " [0] Volver"
-    read -p "builder> " comp_opt
-    case "$comp_opt" in
-        1)
-            echo -e "${YELLOW}[*] Desplegando estructura base en $BUILD_DIR...${NC}"
-            if command -v debootstrap >/dev/null 2>&1; then
-                sudo debootstrap --arch=amd64 stable "$BUILD_DIR" http://deb.debian.org/debian/ || true
-                echo -e "${GREEN}[✔] Entorno rootfs compilado.${NC}"
-            else
-                echo -e "${RED}[!] Debootstrap no disponible. Creando entorno virtual ligero...${NC}"
-                mkdir -p "$BUILD_DIR/bin" "$BUILD_DIR/etc" "$BUILD_DIR/usr"
-                echo "ChronoOS Rootfs v7.0" > "$BUILD_DIR/etc/os-release"
-                echo -e "${GREEN}[✔] Entorno rootfs base generado con éxito.${NC}"
-            fi
-            ;;
-        2)
-            if [ -d "$BUILD_DIR" ]; then
-                cd "$CHRONO_HOME"
-                tar -czf "ChronoOS-Enterprise-v7.0.tar.gz" build_root/
-                echo -e "${GREEN}[✔] Imagen empaquetada en $CHRONO_HOME/ChronoOS-Enterprise-v7.0.tar.gz${NC}"
-            else
-                echo -e "${RED}[!] Debes compilar el rootfs primero (Opción 1).${NC}"
-            fi
-            ;;
-        3)
-            if [ -f "$CHRONO_HOME/ChronoOS-Enterprise-v7.0.tar.gz" ]; then
-                sha256sum "$CHRONO_HOME/ChronoOS-Enterprise-v7.0.tar.gz" > "$CHRONO_HOME/ChronoOS-Enterprise-v7.0.sha256"
-                cat "$CHRONO_HOME/ChronoOS-Enterprise-v7.0.sha256"
-                echo -e "${GREEN}[✔] Hash de integridad generado.${NC}"
-            else
-                echo -e "${RED}[!] No hay imagen empaquetada.${NC}"
-            fi
-            ;;
-    esac
-    read -p "Presiona Enter para continuar..."
-}
-
-sub_pkg() {
-    echo -e "${BLUE}=== CHRONO ENTERPRISE PACKAGE MANAGER (ChronoPKG) ===${NC}"
-    echo " [1] Instalar utilidad o plugin de seguridad"
-    echo " [2] Listar submódulos cargados"
-    echo " [3] Actualizar repositorio corporativo local"
-    echo " [0] Volver"
-    read -p "pkg> " pkg_opt
-    case "$pkg_opt" in
-        1)
-            read -p "Paquete o URL de módulo: " p_target
-            if [[ "$p_target" == http* ]]; then
-                curl -sSL "$p_target" -o "$PLUGINS_DIR/$(basename "$p_target")"
-                echo -e "${GREEN}[✔] Módulo descargado y asegurado.${NC}"
-            elif [ -n "$p_target" ]; then
-                pkg install "$p_target" -y || sudo apt-get install -y "$p_target" || true
-            fi
-            ;;
-        2)
-            echo "Subsistemas Activos:"
-            echo " - chrono-core (v7.0.0 Titanium)"
-            echo " - chrono-vault (AES-256 + SHA-256)"
-            echo " - chrono-radar, cyber-deck & chrono-web"
-            ls -1 "$PLUGINS_DIR" 2>/dev/null || true
-            ;;
-        3)
-            if [ -d ".git" ]; then
-                git pull origin main || true
-                echo -e "${GREEN}[✔] Repositorio actualizado.${NC}"
-            else
-                echo -e "${RED}[!] No es un repositorio git válido.${NC}"
-            fi
-            ;;
-    esac
-    read -p "Presiona Enter para continuar..."
-}
-
-main_loop() {
-    boot_animation
-    while true; do
-        clear
-        echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════╗${NC}"
-        echo -e "${CYAN}║         CHRONOOS – CYBERNETIC SOVEREIGN OS v7.0.0 TITANIUM         ║${NC}"
-        echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════╝${NC}"
-        echo -e "${BLUE} > Authors: Daniel Gonzales Martínez, Adrián & Chrono Shield Team  ${NC}"
-        echo -e "${BLUE} > Logic in mind. Hardware in hand. | Chrono Shield Networks         ${NC}"
-        echo -e "${GRAY} ------------------------------------------------------------------ ${NC}"
-        echo -e "${GREEN}[1]${NC} Chrono Vault (Cifrado AES-256 + Integridad SHA-256)"
-        echo -e "${GREEN}[2]${NC} ChronoRadar (Topología de Red Visual & ASCII)"
-        echo -e "${GREEN}[3]${NC} ChronoDocker (Despliegue de Microservicios Seguros)"
-        echo -e "${GREEN}[4]${NC} ChronoKey (Generador de Identidades Criptográficas Ed25519)"
-        echo -e "${GREEN}[5]${NC} ChronoWeb (Dashboard Gráfico Ciberpunk HTTP)"
-        echo -e "${GREEN}[6]${NC} Redes Descentralizadas & Mesh Stack (Reticulum / SS)"
-        echo -e "${GREEN}[7]${NC} ChronoGuardians (Anomalías, Memoria y Telemetría)"
-        echo -e "${GREEN}[8]${NC} Compilador de SO / Rootfs Builder"
-        echo -e "${GREEN}[9]${NC} ChronoPKG (Gestor de Paquetes)"
-        echo -e "${GREEN}[10]${NC} Modo Cyber Deck (Matrix Data Stream)"
-        echo -e "${GREEN}[11]${NC} Ver Registro de Auditoría Forense (Logs)"
-        echo -e "${GREEN}[0]${NC} Apagar / Salir del Sistema"
-        echo ""
-        read -p "chrono-shell> " main_opc
-
-        case "$main_opc" in
-            1) sub_vault ;;
-            2) sub_radar ;;
-            3) sub_docker_mgr ;;
-            4) sub_keys ;;
-            5) sub_web_dashboard ;;
-            6) sub_network ;;
-            7) sub_guardians ;;
-            8) sub_compiler ;;
-            9) sub_pkg ;;
-            10) sub_cyber_deck ;;
-            11)
-                echo -e "${BLUE}=== HISTORIAL DE AUDITORÍA FORENSE ===${NC}"
-                tail -n 35 "$LOG_FILE" 2>/dev/null || echo "Sin eventos registrados."
-                read -p "Presiona Enter para continuar..."
-                ;;
-            0)
-                echo -e "${CYAN}Apagando interfaz ChronoOS. Perímetro seguro.${NC}"
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}Opción no reconocida.${NC}"
-                sleep 1
-                ;;
-        esac
-    done
-}
-
-case "${1:-menu}" in
-    vault) sub_vault ;;
-    radar) sub_radar ;;
-    docker) sub_docker_mgr ;;
-    keys) sub_keys ;;
-    web) sub_web_dashboard ;;
-    mesh) sub_network ;;
-    guardian|guardians) sub_guardians ;;
-    builder|compiler) sub_compiler ;;
-    pkg) sub_pkg ;;
-    cyber) sub_cyber_deck ;;
-    menu|ui|"") main_loop ;;
-    *)
-        echo "Uso: chrono [vault|radar|docker|keys|web|mesh|guardian|builder|pkg|cyber|menu]"
-        ;;
-esac
+done
+EOF
+chmod +x core/chrono
