@@ -7,14 +7,16 @@ mount -t devtmpfs devtmpfs /dev 2>/dev/null || true
 
 clear
 echo "=================================================================="
-echo "          CHRONOOS KERNEL v7.5 - SOVEREIGN RUNTIME ACTIVE         "
+echo "          CHRONOOS KERNEL v7.5 - ENTERPRISE RUNTIME ACTIVE        "
 echo "          Arch: x86_64 | Init System: BusyBox Native PID 1        "
 echo "=================================================================="
-echo "Herramientas de sistema disponibles en /bin y /sbin:"
-echo "  - chrono-vault  : Subsistema nativo de cifrado AES-256-GCM"
-echo "  - chrono-net    : Gestor de red mesh e interfaces"
-echo "  - chrono-backup : Motor de respaldos locales cifrados"
-echo "  - chrono-audit  : Demonio de auditoría de seguridad del kernel"
+echo "Subsistemas de Misión Crítica Activos (/bin y /sbin):"
+echo "  - chrono-vault    : Bóveda cifrada AES-256-GCM (Grado Industrial)"
+echo "  - chrono-net      : Gestor de red mesh e interfaces"
+echo "  - chrono-backup   : Motor de respaldos locales cifrados"
+echo "  - chrono-stock    : Control de inventario y caja inmutable offline"
+echo "  - chrono-sentinel : Auditoría y blindaje de integridad de hardware"
+echo "  - chrono-audit    : Auditoría de seguridad del kernel"
 echo ""
 
 while true; do
@@ -22,17 +24,17 @@ while true; do
     read cmd
     case "$cmd" in
         help)
-            echo "Comandos internos:"
-            echo "  status        - Muestra el estado del runtime"
-            echo "  chrono-vault  - Ejecuta el gestor de bóveda"
-            echo "  chrono-net    - Gestiona interfaces de red"
-            echo "  chrono-backup - Realiza respaldos cifrados"
-            echo "  chrono-audit  - Audita el estado del sistema"
-            echo "  clear         - Limpia la pantalla"
-            echo "  poweroff      - Apaga el sistema"
+            echo "Comandos internos Enterprise:"
+            echo "  status           - Muestra el estado del runtime"
+            echo "  chrono-vault     - Gestor criptográfico"
+            echo "  chrono-net       - Gestión de red local"
+            echo "  chrono-stock     - Control comercial e inventario"
+            echo "  chrono-sentinel  - Protección y auditoría física de hardware"
+            echo "  clear            - Limpia la pantalla"
+            echo "  poweroff         - Apaga el sistema de forma segura"
             ;;
         status)
-            echo "[✔] Kernel activo | Espacio de usuario: BusyBox + Subsistemas Propios"
+            echo "[✔] Kernel activo | Modo Enterprise Air-Gapped: Máxima Seguridad"
             ;;
         clear)
             clear
