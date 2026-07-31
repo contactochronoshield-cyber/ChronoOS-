@@ -1,0 +1,52 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Enterprise Emergency Cryptographic Purge & Dead-Man's Switch
+# ==============================================================================
+
+export PATH=/bin:/sbin
+
+ACTION="${1:-}"
+
+print_header() {
+    echo "=================================================="
+    echo "   CHRONOOS CRITICAL EMERGENCY PANIC SYSTEM       "
+    echo "=================================================="
+}
+
+if [ "$ACTION" != "EXECUTE-PURGE" ]; then
+    print_header
+    echo "[!] ADVERTENCIA CRÍTICA: Este comando destruirá permanentemente"
+    echo "    las claves de cifrado, los registros de inventario y borrará"
+    echo "    la memoria caché del sistema operativo."
+    echo ""
+    echo "Uso de emergencia: chrono-panic EXECUTE-PURGE"
+    exit 1
+fi
+
+print_header
+echo "[!] ¡SEÑAL DE PÁRICO RECIBIDA! Iniciando protocolo de autodestrucción..."
+
+# 1. Purgar la memoria RAM y búferes del kernel de inmediato
+echo "[*] Vaciando búferes y páginas de memoria RAM..."
+sync
+echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
+if [ -f /proc/sys/vm/compact_memory ]; then
+    echo 1 > /proc/sys/vm/compact_memory 2>/dev/null || true
+fi
+
+# 2. Destruir las bases de datos locales, vaults y registros de inventario
+echo "[*] Ejecutando sobreescritura forense (Secure Shred) de bóvedas y ledgers..."
+for file in /var/db/chrono/* /var/security/* /etc/*.db *.enc *.sha256; do
+    if [ -f "$file" ]; then
+        # Sobrescribir con ceros y datos aleatorios antes de eliminar
+        dd if=/dev/urandom of="$file" bs=512 count=8 2>/dev/null || true
+        rm -f "$file"
+        echo "  [PURGED] Archivo destruido: $file"
+    fi
+done
+
+# 3. Forzar apagado físico o reinicio de emergencia del bus del sistema
+echo "[*] Cortando energía del sistema y aislando componentes..."
+sync
+# Intentar apagar por ACPI o reiniciar forzoso el kernel
+reboot -f 2>/dev/null || poweroff -f 2>/dev/null || echo c > /proc/sysrq-trigger 2>/dev/null

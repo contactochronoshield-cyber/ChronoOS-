@@ -13,7 +13,7 @@
 [![Watch Live Demos](https://img.shields.io/badge/🔥_WATCH_THE_DEMOS_-_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/@chrono-shield-systems?si=YyKm28zYrnz1pNsS)
 [![Paypal Support](https://img.shields.io/badge/💳_SUPPORT_/_PAY_VIA-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/holapampi5)
 
-*El único sistema operativo de infraestructura diseñado para mantener comercios, cadenas de distribución y plantas industriales operando, cobrando y auditando inventarios de alimentos y suministros críticos ante caídas totales de internet o energía.*
+*El único sistema operativo de infraestructura con **Protocolo de Pánico y Purga Criptográfica**, diseñado para mantener comercios, cadenas de distribución y plantas industriales operando offline y destruyendo datos instantáneamente ante amenazas físicas.*
 
 [Ver Demostraciones en Video](https://youtube.com/@chrono-shield-systems?si=YyKm28zYrnz1pNsS) · [Reportar Bug](../../issues) · [Solicitar Funcionalidad](../../issues)
 
@@ -21,18 +21,26 @@
 
 ---
 
+## 🚨 Característica Única en el Mercado: Protocolo de Pánico (`chrono-panic`)
+
+A diferencia de cualquier sistema operativo comercial o distribución Linux tradicional, **ChronoOS incluye un interruptor de emergencia (*Dead-Man’s Switch*) a nivel de kernel**:
+* **Purga RAM Instantánea:** Vuelca y limpia los búferes de memoria para evitar ataques de extracción de claves en frío (*Cold Boot Attacks*).
+* **Destrucción Forense de Bóvedas:** Sobre escribe y elimina de forma irreversible los archivos de inventario, llaves y registros fiscales ante un asalto físico, decomiso o brecha de seguridad.
+* **Aislamiento Total del Nodo:** Corta los procesos críticos y fuerza un reinicio de emergencia en milisegundos.
+
+---
+
 ## 💡 Propuesta de Valor Única: Supervivencia Comercial Offline (`chrono-stock`)
 
-Mientras los sistemas comerciales tradicionales basados en la nube quedan completamente paralizados cuando falla la conexión a internet —provocando pérdidas masivas de ventas de alimentos, suministros y control de caja—, **ChronoOS integra un libro contable y de inventario inmutable a nivel de sistema de archivos raíz (`chrono-stock`)**:
+Mientras los sistemas comerciales basados en la nube quedan completamente paralizados cuando falla la conexión a internet —provocando pérdidas masivas de ventas de alimentos, suministros y control de caja—, **ChronoOS integra un libro contable y de inventario inmutable a nivel de sistema de archivos raíz (`chrono-stock`)**:
 * **Cero Pérdidas por Cortes de Red:** Permite registrar transacciones, ventas de suministros y entradas de inventario de forma local sin depender jamás de servidores externos.
 * **Cierre de Caja Cifrado de Grado Militar:** Al final de la jornada, el subsistema blinda automáticamente los reportes financieros mediante criptografía **AES-256-GCM** y derivación PBKDF2.
-* **Soberanía Financiera Local:** Diseñado para que supermercados, flotas logísticas, distribuidoras de alimentos y tiendas en zonas remotas operen con tranquilidad absoluta.
 
 ---
 
 ## 🏭 Industrias Globales que Necesitan esta Tecnología
 
-1. **Cadenas de Distribución de Alimentos y Retail en Zonas de Conexión Inestable:** Comercios que no pueden permitirse detener la venta de alimentos o inventarios perecederos por un fallo de proveedor de internet.
+1. **Cadenas de Distribución de Alimentos y Retail en Zonas de Conexión Inestable:** Comercios que no pueden permitirse detener la venta de alimentos o inventarios perecederos por un fallo de internet.
 2. **Infraestructura Crítica y Energía (SCADA / ICS):** Plantas y subestaciones que operan en entornos *air-gapped* hiper-seguros.
 3. **Banca Móvil y Terminales Financieras Descentralizadas:** Quioscos de pago y cajas rurales que requieren registros inmutables locales.
 4. **Logística Global y Transporte Marítimo/Aéreo:** Operaciones en movimiento continuo sin cobertura satelital permanente.

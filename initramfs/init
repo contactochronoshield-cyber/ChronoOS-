@@ -16,6 +16,7 @@ echo "  - chrono-net      : Gestor de red mesh e interfaces"
 echo "  - chrono-backup   : Motor de respaldos locales cifrados"
 echo "  - chrono-stock    : Control de inventario y caja inmutable offline"
 echo "  - chrono-sentinel : Auditoría y blindaje de integridad de hardware"
+echo "  - chrono-panic    : Protocolo de pánico y purga criptográfica total"
 echo "  - chrono-audit    : Auditoría de seguridad del kernel"
 echo ""
 
@@ -25,16 +26,17 @@ while true; do
     case "$cmd" in
         help)
             echo "Comandos internos Enterprise:"
-            echo "  status           - Muestra el estado del runtime"
-            echo "  chrono-vault     - Gestor criptográfico"
-            echo "  chrono-net       - Gestión de red local"
-            echo "  chrono-stock     - Control comercial e inventario"
-            echo "  chrono-sentinel  - Protección y auditoría física de hardware"
-            echo "  clear            - Limpia la pantalla"
-            echo "  poweroff         - Apaga el sistema de forma segura"
+            echo "  status         - Muestra el estado del runtime"
+            echo "  chrono-vault   - Gestor criptográfico"
+            echo "  chrono-net     - Gestión de red local"
+            echo "  chrono-stock   - Control comercial e inventario"
+            echo "  chrono-sentinel- Auditoría física de hardware"
+            echo "  chrono-panic   - Sistema de purga por pánico de emergencia"
+            echo "  clear          - Limpia la pantalla"
+            echo "  poweroff       - Apaga el sistema de forma segura"
             ;;
         status)
-            echo "[✔] Kernel activo | Modo Enterprise Air-Gapped: Máxima Seguridad"
+            echo "[✔] Kernel activo | Modo Enterprise Air-Gapped: Blindaje Total"
             ;;
         clear)
             clear
