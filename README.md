@@ -11,8 +11,9 @@
 <br>
 
 [![Watch Live Demos](https://img.shields.io/badge/🔥_WATCH_THE_DEMOS_-_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/@chrono-shield-systems?si=YyKm28zYrnz1pNsS)
+[![Paypal Support](https://img.shields.io/badge/💳_SUPPORT_/_PAY_VIA-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/holapampi5)
 
-*Un entorno operativo minimalista enfocado en ciberseguridad de grado industrial, operaciones offline y gestión de bóvedas cifradas de alto rendimiento.*
+*El único sistema operativo de infraestructura diseñado para mantener comercios, cadenas de distribución y plantas industriales operando, cobrando y auditando inventarios de alimentos y suministros críticos ante caídas totales de internet o energía.*
 
 [Ver Demostraciones en Video](https://youtube.com/@chrono-shield-systems?si=YyKm28zYrnz1pNsS) · [Reportar Bug](../../issues) · [Solicitar Funcionalidad](../../issues)
 
@@ -20,72 +21,37 @@
 
 ---
 
-## 🎯 ¿Qué es ChronoOS?
+## 💡 Propuesta de Valor Única: Supervivencia Comercial Offline (`chrono-stock`)
 
-**ChronoOS** está diseñado específicamente para escenarios donde la conectividad a la nube es inexistente, los entornos son hostiles o se requiere soberanía total de los datos. No es solo un conjunto de scripts: es una **cadena de compilación (*Toolchain*) y un sistema de archivos raíz (*Initramfs*) autónomo** optimizado para hardware crítico.
-
-### 🌟 Características Clave
-- **Autonomía Total (Air-Gapped):** Funciona 100% offline, libre de telemetría y sin dependencias de servidores externos.
-- **Espacio de Usuario Embebido:** Construido con BusyBox y un proceso de inicio (`init` PID 1) de baja huella de memoria.
-- **Bóveda Cifrada Nativa (`chrono-vault`):** Rutinas integradas de cifrado por bloques con estándares de la industria (`AES-256-CBC` y `PBKDF2`).
-- **Multiplataforma:** Preparado para arquitecturas de servidor Bare-Metal (`x86_64`) y entornos móviles aislados como Termux (`ARM64`).
+Mientras los sistemas comerciales tradicionales basados en la nube quedan completamente paralizados cuando falla la conexión a internet —provocando pérdidas masivas de ventas de alimentos, suministros y control de caja—, **ChronoOS integra un libro contable y de inventario inmutable a nivel de sistema de archivos raíz (`chrono-stock`)**:
+* **Cero Pérdidas por Cortes de Red:** Permite registrar transacciones, ventas de suministros y entradas de inventario de forma local sin depender jamás de servidores externos.
+* **Cierre de Caja Cifrado de Grado Militar:** Al final de la jornada, el subsistema blinda automáticamente los reportes financieros mediante criptografía **AES-256-GCM** y derivación PBKDF2.
+* **Soberanía Financiera Local:** Diseñado para que supermercados, flotas logísticas, distribuidoras de alimentos y tiendas en zonas remotas operen con tranquilidad absoluta.
 
 ---
 
-## 🛠️ Estructura del Repositorio
+## 🏭 Industrias Globales que Necesitan esta Tecnología
 
-```text
-chrono-os/
-├── arch/              # Configuraciones específicas por arquitectura (x86_64, aarch64)
-├── boot/              # Gestores de arranque e imágenes de disco
-├── initramfs/         # Sistema de archivos raíz (Contiene el init PID 1 y binarios)
-│   ├── bin/           # Utilidades y comandos nativos (chrono-vault, busybox)
-│   └── init           # Demonio de inicio del sistema operativo
-├── kernel/            # Perfiles y configuraciones base del kernel
-├── scripts/           # Motores de automatización y compilación cruzada
-├── Makefile           # Sistema de compilación maestro del initrd
-└── README.md          # Documentación oficial del proyecto
-```
+1. **Cadenas de Distribución de Alimentos y Retail en Zonas de Conexión Inestable:** Comercios que no pueden permitirse detener la venta de alimentos o inventarios perecederos por un fallo de proveedor de internet.
+2. **Infraestructura Crítica y Energía (SCADA / ICS):** Plantas y subestaciones que operan en entornos *air-gapped* hiper-seguros.
+3. **Banca Móvil y Terminales Financieras Descentralizadas:** Quioscos de pago y cajas rurales que requieren registros inmutables locales.
+4. **Logística Global y Transporte Marítimo/Aéreo:** Operaciones en movimiento continuo sin cobertura satelital permanente.
 
 ---
 
-## 🚀 Compilación y Arranque Rápido
+## 💳 Soporte Comercial y Pagos Directos
 
-Para clonar el repositorio y compilar la imagen de disco inicial (`initrd.img`) en tu entorno local:
-
-```bash
-# 1. Clonar el repositorio
-git clone [https://github.com/tu-usuario/chrono-os.git](https://github.com/tu-usuario/chrono-os.git)
-cd chrono-os
-
-# 2. Ejecutar la cadena de compilación maestra
-make all
-```
-
----
-
-## 📺 Contenido Técnico y Demostraciones Visuales
-
-¡No te pierdas las guías paso a paso, despliegues de arquitectura y pruebas en vivo de nuestras herramientas de seguridad!
-- 👉 **[🎬 Haz clic aquí para ver nuestros videos exclusivos en YouTube](https://youtube.com/@chrono-shield-systems?si=YyKm28zYrnz1pNsS)**
+Para adquirir licencias comerciales de misión crítica, soporte de integración industrial o donaciones para el desarrollo del proyecto, puedes realizar pagos seguros de forma directa:
+* 🟢 **Cuenta de PayPal:** [paypal.me/holapampi5](https://paypal.me/holapampi5) *(Titular: Esteban de la hoz Martínez)*
+* 📧 **Correo de Contacto / Facturación:** `holapampi5@gmail.com`
 
 ---
 
 ## 🌐 Conéctate con el Equipo y la Empresa
 
-Mantente al tanto de los desarrollos corporativos, alianzas y actualizaciones de ingeniería a través de nuestros canales oficiales:
-- 🏢 **Empresa:** [LinkedIn de Chrono Systems](https://www.linkedin.com/in/chrono-systems-a55a503a0?utm_source=share_via&utm_content=profile&utm_medium=member_android)
-- 👨‍💻 **Liderazgo Técnico:** [LinkedIn de Adrián Holaz](https://www.linkedin.com/in/adrian-holaz-55a21541a?utm_source=share_via&utm_content=profile&utm_medium=member_android)
-
----
-
-## 💰 Soporte Industrial y Licenciamiento Comercial
-
-Si bien ChronoOS es de código abierto para auditoría y desarrollo base, ofrecemos **servicios comerciales y módulos propietarios** para empresas:
-- **Soporte de Misión Crítica:** Integración a medida de nodos industriales seguros.
-- **Módulos Avanzados:** Herramientas de análisis forense y respaldos cifrados automatizados.
-
-*(Para consultas empresariales, contáctanos directamente a través de nuestros perfiles profesionales).*
+* 🏢 **Empresa:** [LinkedIn de Chrono Systems](https://www.linkedin.com/in/chrono-systems-a55a503a0?utm_source=share_via&utm_content=profile&utm_medium=member_android)
+* 👨‍💻 **Liderazgo Técnico:** [LinkedIn de Adrián Holaz](https://www.linkedin.com/in/adrian-holaz-55a21541a?utm_source=share_via&utm_content=profile&utm_medium=member_android)
+* 📺 **Demostraciones en Video:** [YouTube - Chrono Shield Systems](https://youtube.com/@chrono-shield-systems?si=YyKm28zYrnz1pNsS)
 
 ---
 
