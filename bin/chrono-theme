@@ -1,0 +1,26 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Enterprise Terminal Aesthetic Engine
+# ==============================================================================
+
+PROFILE="$1"
+PROFILE_PATH="./themes/profiles/${PROFILE}.profile"
+
+clear
+echo "=================================================================="
+echo "         CHRONO SHIELD NETWORKS - TERMINAL VISUAL ENGINE          "
+echo "=================================================================="
+
+if [ -f "$PROFILE_PATH" ]; then
+    . "$PROFILE_PATH"
+    printf "${TERM_BG}${TERM_FG}"
+    clear
+    echo "[$] Aplicando perfil visual empresarial: $PROFILE"
+    echo "[✓] Esquema de colores y paleta de fondo sincronizados con Termux."
+    echo "[*] Estado visual: OPTIMIZADO PARA ANÁLISIS DE RENDIMIENTO."
+    echo "------------------------------------------------------------------"
+else
+    echo "[!] Perfil no encontrado o no especificado."
+    echo "Perfiles disponibles: executive, matrix"
+    echo "Uso: chrono-theme [executive|matrix]"
+fi
