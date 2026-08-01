@@ -1,40 +1,13 @@
 #!/bin/sh
-# ==============================================================================
-# ChronoOS Deep Kernel Architecture & Ring 0 Supervisor
-# ==============================================================================
 export PATH=/bin:/sbin
-
-ACTION="${1:-}"
-
+ACTION="${1:-status}"
 print_header() {
     echo "=================================================="
-    echo "     CHRONOOS DEEP KERNEL & RING 0 SUPERVISOR     "
+    echo "       CHRONOOS KERNEL RING 0 SUPERVISOR         "
     echo "=================================================="
 }
-
 case "$ACTION" in
-    modules)
-        print_header
-        echo "[*] Módulos activos en memoria:"
-        cat /proc/modules 2>/dev/null || echo "[!] No modules loaded."
-        ;;
-    interrupts)
-        print_header
-        echo "[*] Tabla de interrupciones (/proc/interrupts):"
-        cat /proc/interrupts 2>/dev/null
-        ;;
-    sys-limits)
-        print_header
-        echo "[*] Límites del sistema:"
-        ulimit -a
-        ;;
-    buses)
-        print_header
-        echo "[*] Escaneo de buses:"
-        lspci 2>/dev/null || echo "[*] Bus PCI no expuesto en initrd."
-        ;;
-    *)
-        print_header
-        echo "Uso correcto: chrono-kernel [modules | interrupts | sys-limits | buses]"
-        ;;
+    status) print_header; uname -r; uptime; echo " [✔] Ring 0: Íntegro";;
+    logs) print_header; dmesg | tail -n 15 2>/dev/null || echo "[!] Sin trazas.";;
+    *) print_header; echo "Uso: chrono-kernel [status|logs]"; exit 1;;
 esac

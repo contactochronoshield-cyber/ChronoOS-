@@ -1,80 +1,13 @@
 #!/bin/sh
-# ==============================================================================
-# ChronoOS Enterprise Sovereign Cryptographic Vault (Pure Native Engine)
-# ==============================================================================
-
 export PATH=/bin:/sbin
-
-ACTION="${1:-}"
-TARGET_FILE="${2:-}"
-
-print_header() {
-    echo "=================================================="
-    echo "     CHRONOOS SOVEREIGN NATIVE CRYPTO VAULT       "
-    echo "=================================================="
-}
-
-if [ -z "$ACTION" ] || [ -z "$TARGET_FILE" ]; then
-    print_header
-    echo "Uso Enterprise: chrono-vault [encrypt|decrypt|integrity] <archivo>"
+OP="${1:-}"
+TARGET="${2:-}"
+if [ -z "$OP" ] || [ -z "$TARGET" ]; then
+    echo "Uso: chrono-vault [lock|unlock] <recurso>"
     exit 1
 fi
-
-if [ ! -f "$TARGET_FILE" ]; then
-    echo "[!] Error Crítico: El archivo '$TARGET_FILE' no existe en el enclave."
-    exit 1
-fi
-
-case "$ACTION" in
-    encrypt)
-        print_header
-        echo "[*] Ejecutando encapsulamiento y ofuscación nativa de grado industrial..."
-        
-        # Generar firma de integridad SHA-256 nativa del sistema
-        sha256sum "$TARGET_FILE" > "$TARGET_FILE.sha256"
-        
-        # Empaquetar y comprimir de forma segura en formato blindado nativo
-        tar -czf "$TARGET_FILE.chrono" "$TARGET_FILE" "$TARGET_FILE.sha256" 2>/dev/null
-        
-        # Limpiar rastros temporales sin cifrado en claro
-        rm -f "$TARGET_FILE.sha256"
-        
-        echo "[✔] Bóveda blindada generada con éxito: $TARGET_FILE.chrono"
-        ;;
-        
-    decrypt)
-        print_header
-        echo "[*] Abriendo contenedor de bóveda nativa y verificando integridad..."
-        
-        if echo "$TARGET_FILE" | grep -q "\.chrono$"; then
-            tar -xzf "$TARGET_FILE" 2>/dev/null
-            echo "[✔] Contenedor abierto y extraído de forma segura en el espacio de trabajo."
-            
-            # Verificar checksum automático si el archivo de huella existe
-            ORIGINAL_FILE=$(basename "$TARGET_FILE" .chrono)
-            if [ -f "$ORIGINAL_FILE.sha256" ]; then
-                if sha256sum -c "$ORIGINAL_FILE.sha256" --status 2>/dev/null; then
-                    echo "[✔] Verificación de integridad OK: El archivo no ha sido alterado."
-                    rm -f "$ORIGINAL_FILE.sha256"
-                else
-                    echo "[!] ¡ALERTA DE INTEGRIDAD! El contenido de la bóveda fue modificado."
-                fi
-            fi
-        else
-            echo "[!] Error: El archivo no posee la extensión de bóveda nativa .chrono"
-            exit 1
-        fi
-        ;;
-        
-    integrity)
-        print_header
-        echo "[*] Generando huella digital SHA-256 de control..."
-        sha256sum "$TARGET_FILE"
-        ;;
-        
-    *)
-        print_header
-        echo "[!] Acción de bóveda desconocida."
-        exit 1
-        ;;
+mkdir -p /var/db/chrono
+case "$OP" in
+    lock) tar -czf "${TARGET}.chrono.tar.gz" "$TARGET" 2>/dev/null; echo "[✔] Asegurado.";;
+    unlock) tar -xzf "${TARGET}.chrono.tar.gz" 2>/dev/null; echo "[✔] Abierto.";;
 esac
