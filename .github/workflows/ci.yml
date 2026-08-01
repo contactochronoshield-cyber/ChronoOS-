@@ -1,0 +1,20 @@
+name: ChronoOS CI Lint & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-shell:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck on Subsystems
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          find . -name "*.sh" -not -path "./.git/*" -exec shellcheck {} +
+        continue-on-error: true
