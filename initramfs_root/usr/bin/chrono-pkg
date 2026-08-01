@@ -1,0 +1,32 @@
+#!/bin/sh
+DB_DIR="/var/lib/chrono/pkg"
+REPO_DIR="/etc/chrono/repos"
+
+mkdir -p "$DB_DIR"
+
+case "$1" in
+    install)
+        PKG_NAME="$2"
+        echo "[*] Instalando paquete: $PKG_NAME..."
+        if [ -f "$REPO_DIR/$PKG_NAME.tar.gz" ]; then
+            tar -xzf "$REPO_DIR/$PKG_NAME.tar.gz" -C /
+            echo "$PKG_NAME" >> "$DB_DIR/installed.db"
+            echo "[+] Paquete $PKG_NAME instalado exitosamente."
+        else
+            echo "[!] Error: Paquete no encontrado en el repositorio local."
+        fi
+        ;;
+    remove)
+        PKG_NAME="$2"
+        echo "[*] Desinstalando paquete: $PKG_NAME..."
+        sed -i "/^$PKG_NAME$/d" "$DB_DIR/installed.db"
+        echo "[+] Paquete $PKG_NAME removido."
+        ;;
+    list)
+        echo "[*] Paquetes instalados en ChronoOS:"
+        cat "$DB_DIR/installed.db"
+        ;;
+    *)
+        echo "Uso: chrono-pkg {install|remove|list} <paquete>"
+        ;;
+esac

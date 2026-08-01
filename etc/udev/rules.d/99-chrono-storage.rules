@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", RUN+="/usr/bin/chrono-mount.sh %k"
+ACTION=="remove", SUBSYSTEM=="block", ENV{DEVTYPE}=="partition", RUN+="/usr/bin/chrono-umount.sh %k"
