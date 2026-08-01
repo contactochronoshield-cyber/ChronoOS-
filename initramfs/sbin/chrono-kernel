@@ -1,50 +1,40 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Direct Kernel Process & Hardware Supervisor
+# ChronoOS Deep Kernel Architecture & Ring 0 Supervisor
 # ==============================================================================
-
 export PATH=/bin:/sbin
 
 ACTION="${1:-}"
 
 print_header() {
     echo "=================================================="
-    echo "     CHRONOOS KERNEL SUPERVISOR & RUNTIME CORE    "
+    echo "     CHRONOOS DEEP KERNEL & RING 0 SUPERVISOR     "
     echo "=================================================="
 }
 
-if [ -z "$ACTION" ]; then
-    print_header
-    echo "Uso: chrono-kernel [threads|memory-map|sys-stats|force-sync]"
-    exit 1
-fi
-
 case "$ACTION" in
-    threads)
+    modules)
         print_header
-        echo "[*] Listando procesos activos bajo control del PID 1 (Init):"
-        ps -ef 2>/dev/null || cat /proc/stat
+        echo "[*] Módulos activos en memoria:"
+        cat /proc/modules 2>/dev/null || echo "[!] No modules loaded."
         ;;
-    memory-map)
+    interrupts)
         print_header
-        echo "[*] Estado detallado de asignación de memoria RAM del kernel:"
-        cat /proc/meminfo
+        echo "[*] Tabla de interrupciones (/proc/interrupts):"
+        cat /proc/interrupts 2>/dev/null
         ;;
-    sys-stats)
+    sys-limits)
         print_header
-        echo "[*] Estadísticas del sistema y Uptime actual:"
-        uptime
-        cat /proc/version
+        echo "[*] Límites del sistema:"
+        ulimit -a
         ;;
-    force-sync)
+    buses)
         print_header
-        echo "[*] Forzando sincronización de búferes de disco a nivel de kernel..."
-        sync
-        echo "[✔] Sistema de archivos sincronizado de manera segura."
+        echo "[*] Escaneo de buses:"
+        lspci 2>/dev/null || echo "[*] Bus PCI no expuesto en initrd."
         ;;
     *)
         print_header
-        echo "[!] Comando de kernel no reconocido."
-        exit 1
+        echo "Uso correcto: chrono-kernel [modules | interrupts | sys-limits | buses]"
         ;;
 esac
