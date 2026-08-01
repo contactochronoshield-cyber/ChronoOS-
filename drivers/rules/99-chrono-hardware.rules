@@ -1,0 +1,3 @@
+# ChronoOS Hardware Auto-detection Rules
+SUBSYSTEM=="net", ACTION=="add", RUN+="/bin/sh -c 'ip link set %k up'"
+SUBSYSTEM=="block", ACTION=="add", ENV{ID_FS_USAGE}=="filesystem", RUN+="/bin/sh -c 'mkdir -p /mnt/%k && mount /dev/%k /mnt/%k'"
