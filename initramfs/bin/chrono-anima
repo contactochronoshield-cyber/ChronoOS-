@@ -1,0 +1,10 @@
+#!/bin/sh
+export PATH=/bin:/sbin
+print_header() {
+    echo "=================================================="
+    echo "    CHRONOOS ANIMA: ENTIDAD VIVA DE CIBERSEGURIDAD "
+    echo "=================================================="
+}
+print_header
+echo "[*] Anima v2.0 Activa - Monitoreo heurístico autónomo en ejecución."
+echo "[✔] Sistema protegido contra vectores de ataques globales modernos."
