@@ -1,6 +1,6 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Vault Manager: AES-256 Cryptographic Storage Subsystem
+# ChronoOS Vault Manager: AES-256 Cryptographic Storage Subsystem v1.1
 # ==============================================================================
 
 ACTION="$1"
@@ -8,7 +8,7 @@ VAULT_NAME="$2"
 VAULT_DIR="./vault"
 
 if [ -z "$ACTION" ] || [ -z "$VAULT_NAME" ]; then
-    echo "Uso: $sh vault-manager.sh [encrypt|decrypt] <nombre_archivo>"
+    echo "Uso: sh vault-manager.sh [encrypt|decrypt] <nombre_archivo>"
     exit 1
 fi
 
@@ -18,6 +18,7 @@ if [ "$ACTION" = "encrypt" ]; then
     if [ ! -f "$TARGET_FILE" ]; then
         echo "[!] Error: El archivo fuente no existe en $TARGET_FILE"
         exit 1
+    fi
     echo "[*] Cifrando bóveda con AES-256-CBC..."
     openssl enc -aes-256-cbc -salt -in "$TARGET_FILE" -out "${TARGET_FILE}.chrono"
     rm -f "$TARGET_FILE"
