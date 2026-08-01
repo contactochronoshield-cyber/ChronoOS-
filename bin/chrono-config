@@ -1,12 +1,15 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Enterprise Configuration & Aesthetic Management Panel
+# ChronoOS Enterprise Configuration & Aesthetic Management Panel v2.1
 # ==============================================================================
 
 while true; do
-    clear
+    # Limpieza total de pantalla y color de fondo estandarizado para toda la matriz
+    printf "\033[2J\033[H"
+    printf "\033[48;5;16m\033[38;5;214m" # Fondo negro absoluto y texto ámbar/corporativo
+    
     echo "=================================================================="
-    echo "       CHRONO SHIELD NETWORKS - CONFIGURATION & THEMES            "
+    echo "        CHRONO SHIELD NETWORKS - CONFIGURATION & THEMES           "
     echo "=================================================================="
     echo " 1. Aplicar Tema: Executive (Azul Corporativo)"
     echo " 2. Aplicar Tema: Matrix (Verde Fósforo)"
@@ -32,7 +35,6 @@ while true; do
             read -r BG_INPUT
             echo "$BG_INPUT" > "./themes/current_background.cfg"
             echo "[✓] Fondo registrado correctamente: $BG_INPUT"
-            echo "[*] (Nota: Si usa Termux-Styling o Termux-API, la imagen se sincronizará)."
             read -p "Presione Enter para continuar..."
             ;;
         7)
@@ -40,6 +42,8 @@ while true; do
             read -p "Presione Enter para continuar..."
             ;;
         8)
+            printf "\033[0m" # Restaurar colores por defecto al salir
+            clear
             echo "[*] Saliendo del panel de configuración de ChronoOS..."
             exit 0
             ;;
