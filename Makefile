@@ -1,17 +1,24 @@
-CC = gcc
-CFLAGS = -Wall -O2
+# ==============================================================================
+# ChronoOS Master Makefile
+# Author: Daniel Gonzales / Chrono Shield Networks
+# ==============================================================================
 
-all: chrono_init
+.PHONY: all clean initrd test
 
-chrono_init: init/chrono_init.c
-	$(CC) $(CFLAGS) init/chrono_init.c -o build/chrono_init
+all: initrd
 
-install: all
-	mkdir -p /etc/chrono /var/lib/chrono/pkg /usr/bin
-	cp build/chrono_init /sbin/init
-	cp bin/chrono-pkg /usr/bin/chrono-pkg
-	chmod +x /usr/bin/chrono-pkg
-	echo "[+] ChronoOS core desplegado y estructurado."
+initrd:
+	@echo "[*] Ejecutando motor de empaquetado para ChronoOS..."
+	@./scripts/pack_initrd.sh
+
+test: initrd
+	@if [ -f "./run-qemu.sh" ]; then
+		./run-qemu.sh
+	else
+		echo "[!] Script run-qemu.sh no encontrado. Initrd listo en build/initrd.img"
+	fi
 
 clean:
-	rm -f build/chrono_init
+	@echo "[*] Limpiando artefactos de compilación..."
+	@rm -rf build/*.img build/*.cpio.gz
+	@echo "[✓] Limpieza completada."
