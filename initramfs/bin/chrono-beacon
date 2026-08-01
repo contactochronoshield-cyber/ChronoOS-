@@ -1,31 +1,14 @@
 #!/bin/sh
-# ==============================================================================
-# ChronoOS Optical/Acoustic Air-Gap Panic Beacon (Unique OS Feature)
-# ==============================================================================
 export PATH=/bin:/sbin
-
-PAYLOAD="${1:-CHRONO-SECURE-SOS}"
-
+SIGNAL="${1:-status}"
 print_header() {
     echo "=================================================="
-    echo "     CHRONOOS OPTICAL/ACOUSTIC AIR-GAP BEACON     "
+    echo "       CHRONOOS EMERGENCY BEACON SYSTEM          "
     echo "=================================================="
 }
-
-print_header
-echo "[*] Transmitiendo paquete de emergencia sin red física: '$PAYLOAD'"
-echo "[*] Usando modulación estroboscópica de pantalla y zumbador del kernel..."
-
-# Parpadeo de consola de emergencia (simulando baliza óptica para cámaras externas)
-i=0
-while [ $i -lt 5 ]; do
-    clear
-    echo "🚨 [TRANSMITIENDO PULSO ÓPTICO AIR-GAPPED: $PAYLOAD] 🚨"
-    sleep 0.2
-    clear
-    echo ""
-    sleep 0.2
-    i=$((i + 1))
-done
-
-echo "[✔] Baliza de emergencia transmitida con éxito por canales alternos."
+case "$SIGNAL" in
+    sos) print_header; echo "[!] ¡ACTIVANDO SEÑAL SOS!";;
+    silent) print_header; echo "[*] Baliza en modo silencioso.";;
+    status) print_header; echo "[✔] Baliza en espera.";;
+    *) print_header; echo "Uso: chrono-beacon [sos|silent|status]"; exit 1;;
+es

@@ -1,40 +1,15 @@
 #!/bin/sh
-# ==============================================================================
-# ChronoOS Inmutable Offline Stock & Ledger Engine
-# ==============================================================================
 export PATH=/bin:/sbin
-
-LEDGER_DIR="/var/db/chrono"
-LEDGER_FILE="$LEDGER_DIR/stock_ledger.db"
-
-mkdir -p "$LEDGER_DIR"
-[ ! -f "$LEDGER_FILE" ] && echo "TIMESTAMP|ITEM_ID|QUANTITY|ACTION|OPERATOR" > "$LEDGER_FILE"
-
-ACTION="${2:-}"
-ITEM="${3:-}"
-QTY="${4:-0}"
-
-print_header() {
-    echo "=================================================="
-    echo "     CHRONOOS OFFLINE INDUSTRIAL STOCK LEDGER     "
-    echo "=================================================="
-}
-
-case "$1" in
-    record)
-        print_header
-        TIMESTAMP=$(date -u +%Y-%m-%d_%H:%M:%S)
-        echo "$TIMESTAMP|$ITEM|$QTY|RECORD|$(whoami)" >> "$LEDGER_FILE"
-        echo "[✔] Transacción registrada inmutablemente offline: Item [$ITEM] Qty [$QTY]"
-        ;;
-    audit)
-        print_header
-        echo "[*] Auditoría de transacciones inmutables locales:"
-        cat "$LEDGER_FILE"
-        ;;
-    *)
-        print_header
-        echo "Uso: chrono-stock [record|audit] <item_id> <quantity>"
-        exit 1
-        ;;
-es:
+ACTION="${1:-}"
+ITEM="${2:-}"
+QTY="${3:-}"
+DB_PATH="/var/db/chrono/stock.db"
+mkdir -p /var/db/chrono
+if [ -z "$ACTION" ]; then
+    echo "Uso: chrono-stock [add|list] <item> <qty>"
+    exit 1
+fi
+case "$ACTION" in
+    add) echo "$(date -u) | $ITEM | $QTY" >> "$DB_PATH"; echo "[✔] Registrado.";;
+    list) cat "$DB_PATH" 2>/dev/null || echo "[!] Vacío.";;
+esac
