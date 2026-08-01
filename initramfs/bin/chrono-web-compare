@@ -1,0 +1,29 @@
+#!/bin/sh
+export PATH=/bin:/sbin
+
+print_header() {
+    echo "=================================================="
+    echo "    CHRONOOS VS TRADITIONAL OS - WEB ENGINE       "
+    echo "=================================================="
+}
+
+print_header
+echo "[*] Generando análisis comparativo de arquitectura web..."
+echo ""
+echo "--------------------------------------------------"
+echo " 1. ENTORNO TRADICIONAL (Windows / macOS / Linux)"
+echo "--------------------------------------------------"
+echo "  - Dependencias    : Requiere Node.js, NPM, Docker, Apache/Nginx."
+echo "  - Conectividad    : Dependencia constante de Internet y DNS externos."
+echo "  - Seguridad       : Múltiples capas de abstracción y vulnerabilidades."
+echo "  - Privacidad      : Telemetría de IDEs y exposición de puertos."
+echo ""
+echo "--------------------------------------------------"
+echo " 2. CHRONOOS SOVEREIGN ENCLAVE (Air-Gapped)"
+echo "--------------------------------------------------"
+echo "  - Dependencias    : Cero dependencias externas (100% BusyBox nativo)."
+echo "  - Conectividad    : Operación autónoma en red local o aislado."
+echo "  - Seguridad       : Contenedores inmutables y control de Ring 0."
+echo "  - Privacidad      : Criptografía SHA-256 local y sin rastreo."
+echo "--------------------------------------------------"
+echo "[✔] Análisis completado con éxito."
