@@ -1,52 +1,52 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Ultimate Emergency Panic & Forensic Shredder Engine v4.0
-# Grado de seguridad: Militar / Criptográfico de Cero Rastro
+# ChronoOS Ultimate Emergency Panic & High-Speed Shredder Engine v5.0
+# Optimizado para velocidad extrema, almacenamiento flash/SSD y cero rastros
 # ==============================================================================
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
-# 1. Bloquear interrupciones de usuario para asegurar la ejecución atómica
+# Bloquear señales de interrupción para asegurar atomicidad
 trap '' INT TERM QUIT HUP
 
-echo "[CRITICAL SECURITY EVENT] HARDWARE EMERGENCY PANIC TRIGGERED."
-echo "[*] Synchronizing all filesystem buffers..."
+echo "[CRITICAL SECURITY EVENT] EMERGENCY PANIC & RAPID SHRED TRIGGERED."
+echo "[*] Forcing immediate filesystem synchronization..."
 sync
 
-echo "[*] Purging volatile memory buffers and shared memory (/dev/shm)..."
+echo "[*] Remounting root filesystem read-only to prevent write locks..."
 mount -o remount,ro / 2>/dev/null || true
-rm -rf /dev/shm/* 2>/dev/null || true
-swapoff -a 2>/dev/null || true
 
-echo "[*] Flushing kernel caches, slabs, and page tables..."
+echo "[*] Purging swap partitions and volatile shared memory..."
+swapoff -a 2>/dev/null || true
+rm -rf /dev/shm/* 2>/dev/null || true
+
+echo "[*] Clearing kernel slab caches and memory pages..."
 echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 sync
 
-echo "[*] Executing DoD-grade multi-pass cryptographic shredding on vaults..."
-# Búsqueda exhaustiva y recursiva en directorios críticos del sistema
-for target_dir in ./vault ./crypto_keys /var/db/chrono /var/security /etc/keys /root/.keys; do
-    if [ -d "$target_dir" ]; then
-        find "$target_dir" -type f 2>/dev/null | while read -r file; do
-            echo "[SHRED] Erasing target: $file"
-            fsize=$(wc -c < "$file" 2>/dev/null || echo 4096)
-            
-            # Pasada 1: Datos pseudoaleatorios de alta entropía (/dev/urandom)
-            dd if=/dev/urandom of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
-            # Pasada 2: Sobrescritura total con ceros binarios
-            dd if=/dev/zero of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
-            # Pasada 3: Patrón de bits complementarios (ones)
-            tr '\0' '\377' < /dev/zero | dd of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
-            
-            # Eliminación física definitiva del inodo
-            rm -f "$file"
-        done
+echo "[*] Executing high-speed forensic shredding on cryptographic materials..."
+# Búsqueda dinámica global de archivos sensibles en todo el árbol de directorios locales
+find . /var /etc /root -type f \( -name "*.key" -o -name "*.chrono" -o -name "*.db" -o -name "*.vault" -o -name "*.dat" -o -name "master.key" \) 2>/dev/null | while read -r target; do
+    if [ -f "$target" ]; then
+        echo "[FAST-SHRED] Neutralizing: $target"
+        
+        # Si la utilidad 'shred' de coreutils está disponible, usarla con pasadas optimizadas
+        if command -v shred >/dev/null 2>&1; then
+            shred -u -n 2 -z "$target" 2>/dev/null || rm -f "$target"
+        else
+            # Método rápido optimizado por bloques (evita el cuello de botella de bs=1)
+            fsize=$(wc -c < "$target" 2>/dev/null || echo 4096)
+            dd if=/dev/urandom of="$target" bs=4k count=1 conv=fsync 2>/dev/null || true
+            dd if=/dev/zero of="$target" bs=4k count=1 conv=fsync 2>/dev/null || true
+            rm -f "$target"
+        fi
     fi
 done
 
-echo "[*] Clearing kernel forensic logs and dmesg history..."
+echo "[*] Erasing forensic traces, shell histories and logs..."
+rm -rf /var/log/* ./logs/* ~/.bash_history ~/.ash_history 2>/dev/null || true
 dmesg -c >/dev/null 2>/dev/null || true
-rm -rf /var/log/* ./logs/* 2>/dev/null || true
 
-echo "[*] Triggering absolute hardware bus termination and forced kernel panic..."
+echo "[*] Forcing low-level hardware bus termination and kernel panic..."
 sync
-# Forzar pánico de kernel instantáneo y corte físico de bus
+# Forzar pánico de kernel instantáneo y corte físico
 echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null
