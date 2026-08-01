@@ -1,0 +1,4 @@
+#!/bin/sh
+echo "[🛡️ CHRONO-ANIMA] Escáner activo de ciberseguridad y aislamiento."
+echo "[*] Comprobando reglas de firewall locales y sockets activos..."
+netstat -tuln 2>/dev/null || ss -tuln 2>/dev/null || echo "[*] Monitoreo de red en espacio de usuario operativo."

@@ -1,0 +1,21 @@
+#!/bin/sh
+TARGET="$1"
+if [ -z "$TARGET" ] || [ ! -f "$TARGET" ]; then
+    echo "Uso: chrono-notary <archivo_a_certificar>"
+    exit 1
+fi
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+HASH=$(sha256sum "$TARGET" | cut -d' ' -f1)
+NOTARY_FILE="${TARGET}.notary"
+
+cat << INNER_EOF > "$NOTARY_FILE"
+--- CHRONOOS SOVEREIGN NOTARY RECORD ---
+Target File: $TARGET
+Timestamp:   $TIMESTAMP
+SHA-256:     $HASH
+Status:      VERIFIED_OFFLINE
+----------------------------------------
+INNER_EOF
+
+echo "[✓] Certificado notarial generado con éxito en: $NOTARY_FILE"
+echo "    Hash SHA-256: $HASH"

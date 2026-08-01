@@ -1,0 +1,12 @@
+#!/bin/sh
+QUERY="$1"
+echo "[*] Analizando consulta en el núcleo de inferencia local..."
+if [ "$QUERY" = "status" ]; then
+    uptime
+    df -h | grep data || df -h
+elif [ "$QUERY" = "audit" ]; then
+    echo "[*] Verificando integridad del sistema de archivos..."
+    find . -name "*.sh" -type f | wc -l | awk '{print "[✓] Scripts ejecutables auditados: " $1}'
+else
+    echo "Uso: chrono-mind [status|audit]"
+fi

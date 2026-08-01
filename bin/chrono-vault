@@ -1,0 +1,24 @@
+#!/bin/sh
+ACTION="$1"
+TARGET="$2"
+if [ -z "$ACTION" ] || [ -z "$TARGET" ]; then
+    echo "Uso: chrono-vault [encrypt|decrypt] <archivo>"
+    exit 1
+fi
+if [ ! -f "$TARGET" ]; then
+    echo "[!] Error: Archivo no encontrado: $TARGET"
+    exit 1
+fi
+if [ "$ACTION" = "encrypt" ]; then
+    echo "[*] Aplicando cifrado simétrico real AES-256-CBC..."
+    openssl enc -aes-256-cbc -salt -in "$TARGET" -out "${TARGET}.enc" && rm -f "$TARGET"
+    echo "[✓] Cifrado completado: ${TARGET}.enc"
+elif [ "$ACTION" = "decrypt" ]; then
+    if [ ! -f "${TARGET}.enc" ]; then
+        echo "[!] Error: El archivo cifrado ${TARGET}.enc no existe"
+        exit 1
+    fi
+    echo "[*] Descifrando bóveda con clave simétrica..."
+    openssl enc -d -aes-256-cbc -in "${TARGET}.enc" -out "$TARGET"
+    echo "[✓] Archivo restaurado: $TARGET"
+fi

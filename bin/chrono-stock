@@ -1,0 +1,19 @@
+#!/bin/sh
+DB="./var/inventory.db"
+mkdir -p ./var
+touch "$DB"
+
+ACTION="$1"
+ITEM="$2"
+QTY="$3"
+
+if [ "$ACTION" = "add" ] && [ -n "$ITEM" ] && [ -n "$QTY" ]; then
+    TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
+    echo "$TIMESTAMP | ITEM: $ITEM | QTY: $QTY" >> "$DB"
+    echo "[✓] Inventario actualizado: $ITEM (Cantidad: $QTY)"
+elif [ "$ACTION" = "list" ]; then
+    echo "=== REGISTRO DE INVENTARIO INDUSTRIAL ==="
+    cat "$DB"
+else
+    echo "Uso: chrono-stock [add <item> <cantidad> | list]"
+fi
