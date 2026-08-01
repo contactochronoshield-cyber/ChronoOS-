@@ -30,17 +30,26 @@
                 <p>Red Distribuida: <span class="status-badge">ACTIVA</span></p>
             </div>
 
-            <!-- Tarjeta 3: Consola de Telemetría -->
+            <!-- Tarjeta 3: Subsistemas y Pasarelas (Nuevo) -->
+            <div class="card">
+                <h3>Subsistemas Avanzados</h3>
+                <p>Forense: <a href="./forensics/audit_report.json" style="color: #00ffcc;" target="_blank">Ver JSON Audit</a></p>
+                <p>Gateway Router: <a href="./gateway/router.config" style="color: #00ffcc;" target="_blank">Configuración</a></p>
+                <p>Módulos JS: <span class="status-badge">CARGADOS</span></p>
+            </div>
+
+            <!-- Tarjeta 4: Consola de Telemetría -->
             <div class="card" style="grid-column: 1 / -1;">
                 <h3>Telemetría en Vivo & Subsistemas</h3>
                 <div class="terminal-box">
                     root@chrono-os:~# ./bin/chrono-service status<br>
                     [✓] Estado: ACTIVO (Daemon persistente en C corriendo)<br>
                     [✓] Criptografía de Bóvedas: OpenSSL AES-256-CBC Verificado.<br>
-                    [✓] Entorno visual: Perfiles dinámicos y temas corporativos cargados.
+                    [✓] Entorno visual y carpetas ampliadas sincronizadas correctamente.
                 </div>
             </div>
         </div>
     </div>
+    <script src="./modules/core_extensions.js"></script>
 </body>
 </html>
