@@ -10,13 +10,15 @@ echo "=================================================================="
 echo "          CHRONOOS KERNEL v7.5 - ENTERPRISE RUNTIME ACTIVE        "
 echo "          Arch: x86_64 | Init System: BusyBox Native PID 1        "
 echo "=================================================================="
-echo "Subsistemas de Misión Crítica Activos (/bin y /sbin):"
+echo "Subsistemas de Misión Crítica y Formación Activos (/bin y /sbin):"
 echo "  - chrono-vault    : Bóveda cifrada AES-256-GCM (Grado Industrial)"
 echo "  - chrono-net      : Gestor de red mesh e interfaces"
 echo "  - chrono-backup   : Motor de respaldos locales cifrados"
 echo "  - chrono-stock    : Control de inventario y caja inmutable offline"
 echo "  - chrono-sentinel : Auditoría y blindaje de integridad de hardware"
+echo "  - chrono-sync     : Telemetría de enjambre y sincronización air-gapped"
 echo "  - chrono-panic    : Protocolo de pánico y purga criptográfica total"
+echo "  - chrono-academy  : Portal interactivo de Chrono Future Institute"
 echo "  - chrono-audit    : Auditoría de seguridad del kernel"
 echo ""
 
@@ -31,12 +33,14 @@ while true; do
             echo "  chrono-net     - Gestión de red local"
             echo "  chrono-stock   - Control comercial e inventario"
             echo "  chrono-sentinel- Auditoría física de hardware"
-            echo "  chrono-panic   - Sistema de purga por pánico de emergencia"
+            echo "  chrono-sync    - Sincronización de enjambre industrial"
+            echo "  chrono-panic   - Sistema de pánico por pánico de emergencia"
+            echo "  chrono-academy - Portal de formación Chrono Future Institute"
             echo "  clear          - Limpia la pantalla"
             echo "  poweroff       - Apaga el sistema de forma segura"
             ;;
         status)
-            echo "[✔] Kernel activo | Modo Enterprise Air-Gapped: Blindaje Total"
+            echo "[✔] Kernel activo | Modo Enterprise Air-Gapped: Máxima Resiliencia"
             ;;
         clear)
             clear

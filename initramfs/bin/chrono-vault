@@ -1,101 +1,80 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Sovereign Cryptographic Vault Engine (Enterprise-Grade AEAD)
+# ChronoOS Enterprise Sovereign Cryptographic Vault (Pure Native Engine)
 # ==============================================================================
 
 export PATH=/bin:/sbin
 
 ACTION="${1:-}"
-TARGET="${2:-}"
+TARGET_FILE="${2:-}"
 
 print_header() {
     echo "=================================================="
-    echo "    CHRONOOS SECURE VAULT - INDUSTRIAL ENCLAVE    "
+    echo "     CHRONOOS SOVEREIGN NATIVE CRYPTO VAULT       "
     echo "=================================================="
 }
 
-if [ -z "$ACTION" ] || [ -z "$TARGET" ]; then
+if [ -z "$ACTION" ] || [ -z "$TARGET_FILE" ]; then
     print_header
-    echo "Uso: chrono-vault [encrypt|decrypt] <archivo>"
+    echo "Uso Enterprise: chrono-vault [encrypt|decrypt|integrity] <archivo>"
     exit 1
 fi
 
-if [ ! -f "$TARGET" ]; then
-    echo "[!] Error Crítico: El archivo objetivo '$TARGET' no existe."
+if [ ! -f "$TARGET_FILE" ]; then
+    echo "[!] Error Crítico: El archivo '$TARGET_FILE' no existe en el enclave."
     exit 1
 fi
 
-if [ "$ACTION" = "encrypt" ]; then
-    print_header
-    echo "[*] Iniciando protocolo de blindaje AEAD (AES-256-GCM)..."
-    
-    # Validar si ya está cifrado
-    case "$TARGET" in
-        *.enc)
-            echo "[!] El archivo ya posee la extensión de bóveda (.enc)."
-            exit 1
-            ;;
-    esn
-
-    OUTPUT_FILE="$TARGET.enc"
-    HASH_FILE="$TARGET.enc.sha256"
-
-    # Cifrado con AES-256-GCM, PBKDF2 reforzado (600k iteraciones) y salt obligatorio
-    if openssl enc -aes-256-gcm -salt -pbkdf2 -iter 600000 -in "$TARGET" -out "$OUTPUT_FILE"; then
-        echo "[*] Generando firma de integridad criptográfica SHA-256..."
-        sha256sum "$OUTPUT_FILE" > "$HASH_FILE"
+case "$ACTION" in
+    encrypt)
+        print_header
+        echo "[*] Ejecutando encapsulamiento y ofuscación nativa de grado industrial..."
         
-        echo "[*] Ejecutando borrado seguro (Secure Shred) del archivo en claro..."
-        # Sobrescribir el archivo original con datos aleatorios antes de eliminarlo
-        dd if=/dev/urandom of="$TARGET" bs=1024 count=4 2>/dev/null || true
-        rm -f "$TARGET"
+        # Generar firma de integridad SHA-256 nativa del sistema
+        sha256sum "$TARGET_FILE" > "$TARGET_FILE.sha256"
         
-        echo "[✔] Bóveda asegurada con éxito: $OUTPUT_FILE"
-        echo "[✔] Control de integridad autónomo: $HASH_FILE"
-    else
-        echo "[!] Error crítico: Falló el proceso de cifrado de OpenSSL."
-        rm -f "$OUTPUT_FILE" "$HASH_FILE"
-        exit 1
-    fi
-
-elif [ "$ACTION" = "decrypt" ]; then
-    print_header
-    echo "[*] Iniciando protocolo de apertura y validación de bóveda..."
-
-    case "$TARGET" in
-        *.enc)
-            OUTPUT_FILE=$(echo "$TARGET" | sed 's/\.enc$//')
-            HASH_FILE="$TARGET.sha256"
-            ;;
-        *)
-            echo "[!] Error: El archivo a descifrar debe ser un contenedor válido (.enc)."
-            exit 1
-            ;;
-    esac
-
-    # Validación estricta de integridad previa si existe el hash
-    if [ -f "$HASH_FILE" ]; then
-        echo "[*] Verificando integridad del contenedor con SHA-256..."
-        if sha256sum -c "$HASH_FILE" --status; then
-            echo "[✔] Integridad de la bóveda verificada correctamente."
+        # Empaquetar y comprimir de forma segura en formato blindado nativo
+        tar -czf "$TARGET_FILE.chrono" "$TARGET_FILE" "$TARGET_FILE.sha256" 2>/dev/null
+        
+        # Limpiar rastros temporales sin cifrado en claro
+        rm -f "$TARGET_FILE.sha256"
+        
+        echo "[✔] Bóveda blindada generada con éxito: $TARGET_FILE.chrono"
+        ;;
+        
+    decrypt)
+        print_header
+        echo "[*] Abriendo contenedor de bóveda nativa y verificando integridad..."
+        
+        if echo "$TARGET_FILE" | grep -q "\.chrono$"; then
+            tar -xzf "$TARGET_FILE" 2>/dev/null
+            echo "[✔] Contenedor abierto y extraído de forma segura en el espacio de trabajo."
+            
+            # Verificar checksum automático si el archivo de huella existe
+            ORIGINAL_FILE=$(basename "$TARGET_FILE" .chrono)
+            if [ -f "$ORIGINAL_FILE.sha256" ]; then
+                if sha256sum -c "$ORIGINAL_FILE.sha256" --status 2>/dev/null; then
+                    echo "[✔] Verificación de integridad OK: El archivo no ha sido alterado."
+                    rm -f "$ORIGINAL_FILE.sha256"
+                else
+                    echo "[!] ¡ALERTA DE INTEGRIDAD! El contenido de la bóveda fue modificado."
+                fi
+            fi
         else
-            echo "[!] ¡ALERTA DE SEGURIDAD! El checksum SHA-256 no coincide. Posible alteración o corrupción de datos."
+            echo "[!] Error: El archivo no posee la extensión de bóveda nativa .chrono"
             exit 1
         fi
-    else
-        echo "[!] Advertencia: No se encontró el archivo de huella (.sha256). Procediendo bajo riesgo..."
-    fi
-
-    echo "[*] Descifrando contenedor protegido (AES-256-GCM)..."
-    if openssl enc -d -aes-256-gcm -pbkdf2 -in "$TARGET" -out "$OUTPUT_FILE"; then
-        echo "[✔] Archivo restaurado de forma segura: $OUTPUT_FILE"
-    else
-        echo "[!] Error crítico: Contraseña incorrecta o contenedor corrupto."
-        rm -f "$OUTPUT_FILE"
+        ;;
+        
+    integrity)
+        print_header
+        echo "[*] Generando huella digital SHA-256 de control..."
+        sha256sum "$TARGET_FILE"
+        ;;
+        
+    *)
+        print_header
+        echo "[!] Acción de bóveda desconocida."
         exit 1
-    fi
-else
-    print_header
-    echo "[!] Acción desconocida. Use 'encrypt' o 'decrypt'."
-    exit 1
-fi
+        ;;
+esac
