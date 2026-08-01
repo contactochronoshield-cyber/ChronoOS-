@@ -1,0 +1,42 @@
+#!/bin/sh
+ACTION="$1"
+PID_FILE="./run/chrono_daemon.pid"
+LOG_FILE="./var/system_pulse.log"
+
+mkdir -p ./run ./var
+
+case "$ACTION" in
+    "start")
+        if [ -f "$PID_FILE" ] && kill -0 $(cat "$PID_FILE") 2>/dev/null; then
+            echo "[!] El daemon de ChronoOS ya se encuentra en ejecución."
+        else
+            echo "[*] Arrancando daemon persistente de sistema..."
+            ./kernel/chrono_daemon > /dev/null 2>&1 &
+            echo $! > "$PID_FILE"
+            echo "[✓] Daemon iniciado con PID $(cat "$PID_FILE"). El sistema ahora vive en segundo plano."
+        fi
+        ;;
+    "stop")
+        if [ -f "$PID_FILE" ]; then
+            PID=$(cat "$PID_FILE")
+            echo "[*] Deteniendo daemon (PID: $PID)..."
+            kill "$PID" 2>/dev/null
+            rm -f "$PID_FILE"
+            echo "[✓] Daemon detenido. El sistema se ha congelado de manera controlada."
+        else
+            echo "[!] No se encontró un proceso daemon activo."
+        fi
+        ;;
+    "status")
+        if [ -f "$PID_FILE" ] && kill -0 $(cat "$PID_FILE") 2>/dev/null; then
+            echo "[✓] Estado: ACTIVO (PID: $(cat "$PID_FILE"))"
+            echo "--- Últimos registros de pulso ---"
+            tail -n 5 "$LOG_FILE" 2>/dev/null || echo "Sin registros recientes."
+        else
+            echo "[!] Estado: INACTIVO o detenido."
+        fi
+        ;;
+    *)
+        echo "Uso: chrono-service [start|stop|status]"
+        ;;
+es
