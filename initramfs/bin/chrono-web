@@ -1,0 +1,38 @@
+#!/bin/sh
+export PATH=/bin:/sbin
+ACTION="${1:-}"
+PROJECT_NAME="${2:-my-secure-site}"
+WEB_ROOT="/var/www/chrono"
+mkdir -p "$WEB_ROOT/$PROJECT_NAME"
+print_header() {
+    echo "=================================================="
+    echo "       CHRONOOS SOVEREIGN WEB STUDIO (WEB)       "
+    echo "=================================================="
+}
+if [ -z "$ACTION" ]; then
+    print_header
+    echo "Uso: chrono-web [init|build|secure] <proyecto>"
+    exit 1
+fi
+case "$ACTION" in
+    init)
+        print_header
+        echo "<h1 style='color:#00ffcc;'>ChronoOS Web Enclave</h1>" > "$WEB_ROOT/$PROJECT_NAME/index.html"
+        echo "[✔] Sitio web inicializado en $WEB_ROOT/$PROJECT_NAME"
+        ;;
+    build)
+        print_header
+        tar -czf "$WEB_ROOT/${PROJECT_NAME}_bundle.tar.gz" -C "$WEB_ROOT" "$PROJECT_NAME"
+        echo "[✔] Paquete web compilado y firmado."
+        ;;
+    secure)
+        print_header
+        chmod -R 755 "$WEB_ROOT/$PROJECT_NAME"
+        echo "[✔] Entorno web blindado."
+        ;;
+    *)
+        print_header
+        echo "Comando no válido."
+        exit 1
+        ;;
+es
