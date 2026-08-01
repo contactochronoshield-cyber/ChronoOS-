@@ -1,0 +1,77 @@
+:root {
+    --bg-color: #0b0f19;
+    --card-bg: rgba(17, 24, 39, 0.7);
+    --accent-cyan: #00ffcc;
+    --accent-blue: #38bdf8;
+    --text-main: #f3f4f6;
+    --border-color: rgba(0, 255, 204, 0.2);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+header {
+    border-bottom: 2px solid var(--accent-cyan);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+h1 {
+    color: var(--accent-blue);
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.card h3 {
+    color: var(--accent-cyan);
+    margin-top: 0;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 8px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(0, 255, 204, 0.1);
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.terminal-box {
+    background: #020617;
+    border: 1px solid #1e293b;
+    padding: 12px;
+    font-size: 0.85rem;
+    color: #38bdf8;
+    overflow-x: auto;
+    border-radius: 4px;
+}
