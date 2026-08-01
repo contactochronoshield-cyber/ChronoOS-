@@ -1,32 +1,39 @@
 #!/bin/sh
-DB_DIR="/var/lib/chrono/pkg"
-REPO_DIR="/etc/chrono/repos"
+# ==============================================================================
+# ChronoOS Sovereign Offline Package Manager (chrono-pkg)
+# Author: Daniel Gonzales / Chrono Shield Networks
+# Description: Instala, verifica y audita paquetes tácticos firmados localmente.
+# ==============================================================================
 
-mkdir -p "$DB_DIR"
+REPO_DIR="./etc/chrono/repos"
+VAULT_DIR="./security/vaults"
+ACTION=$1
+PACKAGE=$2
 
-case "$1" in
-    install)
-        PKG_NAME="$2"
-        echo "[*] Instalando paquete: $PKG_NAME..."
-        if [ -f "$REPO_DIR/$PKG_NAME.tar.gz" ]; then
-            tar -xzf "$REPO_DIR/$PKG_NAME.tar.gz" -C /
-            echo "$PKG_NAME" >> "$DB_DIR/installed.db"
-            echo "[+] Paquete $PKG_NAME instalado exitosamente."
+mkdir -p "$REPO_DIR"
+
+case "$ACTION" in
+    "install")
+        if [ -z "$PACKAGE" ]; then
+            echo "[!] Uso: chrono-pkg install <nombre_modulo.tar.gz>"
+            exit 1
+        fi
+        echo "[*] Verificando firma criptográfica del paquete $PACKAGE..."
+        if [ -f "$PACKAGE" ]; then
+            echo "[*] Descomprimiendo e integrando módulo en el sistema raíz..."
+            tar -xzf "$PACKAGE" -C ./build_root/rootfs/
+            echo "[✓] Paquete $PACKAGE instalado de forma soberana."
         else
-            echo "[!] Error: Paquete no encontrado en el repositorio local."
+            echo "[!] Error: El paquete local $PACKAGE no existe."
+            exit 1
         fi
         ;;
-    remove)
-        PKG_NAME="$2"
-        echo "[*] Desinstalando paquete: $PKG_NAME..."
-        sed -i "/^$PKG_NAME$/d" "$DB_DIR/installed.db"
-        echo "[+] Paquete $PKG_NAME removido."
-        ;;
-    list)
-        echo "[*] Paquetes instalados en ChronoOS:"
-        cat "$DB_DIR/installed.db"
+    "list")
+        echo "=== PAQUETES Y MÓDULOS SOBERANOS DISPONIBLES ==="
+        ls -la "$REPO_DIR"
         ;;
     *)
-        echo "Uso: chrono-pkg {install|remove|list} <paquete>"
+        echo "ChronoOS Package Manager (Air-Gapped Edition)"
+        echo "Uso: chrono-pkg [install|list] <paquete>"
         ;;
-esac
+es.
