@@ -1,0 +1,50 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Direct Kernel Process & Hardware Supervisor
+# ==============================================================================
+
+export PATH=/bin:/sbin
+
+ACTION="${1:-}"
+
+print_header() {
+    echo "=================================================="
+    echo "     CHRONOOS KERNEL SUPERVISOR & RUNTIME CORE    "
+    echo "=================================================="
+}
+
+if [ -z "$ACTION" ]; then
+    print_header
+    echo "Uso: chrono-kernel [threads|memory-map|sys-stats|force-sync]"
+    exit 1
+fi
+
+case "$ACTION" in
+    threads)
+        print_header
+        echo "[*] Listando procesos activos bajo control del PID 1 (Init):"
+        ps -ef 2>/dev/null || cat /proc/stat
+        ;;
+    memory-map)
+        print_header
+        echo "[*] Estado detallado de asignación de memoria RAM del kernel:"
+        cat /proc/meminfo
+        ;;
+    sys-stats)
+        print_header
+        echo "[*] Estadísticas del sistema y Uptime actual:"
+        uptime
+        cat /proc/version
+        ;;
+    force-sync)
+        print_header
+        echo "[*] Forzando sincronización de búferes de disco a nivel de kernel..."
+        sync
+        echo "[✔] Sistema de archivos sincronizado de manera segura."
+        ;;
+    *)
+        print_header
+        echo "[!] Comando de kernel no reconocido."
+        exit 1
+        ;;
+esac
