@@ -1,0 +1,95 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Family Protection & App Locker - Interactive Control Panel
+# ==============================================================================
+
+CONFIG_DIR="./security/family"
+STATE_FILE="$CONFIG_DIR/locker.state"
+POLICY_FILE="$CONFIG_DIR/custom_blocks.conf"
+
+mkdir -p "$CONFIG_DIR"
+touch "$STATE_FILE" "$POLICY_FILE"
+
+clear
+echo "=================================================================="
+echo "          CHRONOOS FAMILY & STOREFRONT SECURITY MANAGER           "
+echo "=================================================================="
+echo " Control parental y aislamiento de aplicaciones para menores."
+echo "------------------------------------------------------------------"
+
+# Verificar estado actual
+CURRENT_STATE=$(cat "$STATE_FILE" 2>/dev/null || echo "UNLOCKED")
+
+if [ "$CURRENT_STATE" = "LOCKED" ]; then
+    echo " Estado Actual: [🛡️ MODO INFANTIL ACTIVO - Bloqueo total aplicado]"
+else
+    echo " Estado Actual: [🔓 MODO ADMINISTRADOR - Sistema libre]"
+fi
+
+echo ""
+echo " Seleccione una opción de configuración:"
+echo " 1. Activar Modo Infantil (Bloquear apps prohibidas y cifrar negocio)"
+echo " 2. Desactivar Modo Infantil (Restaurar acceso total con clave)"
+echo " 3. Configurar / Ver apps prohibidas (WhatsApp, Redes, etc.)"
+echo " 4. Salir"
+echo "------------------------------------------------------------------"
+printf "Ingrese su opción [1-4]: "
+read -r OPTION
+
+case "$OPTION" in
+    1)
+        echo ""
+        echo "================================================================"
+        echo " [?] ADVERTENCIA DE SEGURIDAD FAMILIAR"
+        echo " ¿Está seguro de activar el aislamiento para menores?"
+        echo " Esto ocultará datos comerciales y bloqueará mensajería."
+        echo "================================================================"
+        printf " Confirmar activación [s/N]: "
+        read -r CONFIRM
+        
+        if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
+            ./bin/chrono-shield-family lock
+            echo "LOCKED" > "$STATE_FILE"
+            echo "[✓] Protección infantil aplicada correctamente."
+        else
+            echo "[*] Operación cancelada por el usuario."
+        fi
+        ;;
+    2)
+        echo ""
+        ./bin/chrono-shield-family unlock
+        if [ $? -eq 0 ]; then
+            echo "UNLOCKED" > "$STATE_FILE"
+        fi
+        ;;
+    3)
+        clear
+        echo "=================================================================="
+        echo "           CONFIGURACIÓN DE APPS Y CONTENIDO BLOQUEADO            "
+        echo "=================================================================="
+        echo "Aplicaciones y dominios actualmente restringidos en el sistema:"
+        if [ -s "$POLICY_FILE" ]; then
+            cat "$POLICY_FILE" | sed 's/^/  - /'
+        else
+            echo "  - com.whatsapp (Mensajería)"
+            echo "  - com.instagram.android (Redes Sociales)"
+            echo "  - explicit_media_cache (Contenido para adultos)"
+        fi
+        echo "------------------------------------------------------------------"
+        printf "¿Desea agregar un nuevo paquete a la lista negra? [s/N]: "
+        read -r ADD_CHOICE
+        if [ "$ADD_CHOICE" = "s" ] || [ "$ADD_CHOICE" = "S" ]; then
+            printf "Ingrese el nombre del paquete o dominio (ej: com.tiktok): "
+            read -r NEW_PKG
+            echo "$NEW_PKG" >> "$POLICY_FILE"
+            echo "[✓] Paquete '$NEW_PKG' agregado a las restricciones de los niños."
+        fi
+        ;;
+    4)
+        echo "[*] Saliendo del administrador familiar..."
+        exit 0
+        ;;
+    *)
+        echo "[!] Opción no válida."
+        ;;
+esac
