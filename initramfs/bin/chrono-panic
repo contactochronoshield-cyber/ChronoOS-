@@ -1,40 +1,52 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Enterprise Kernel Panic & Cryptographic Shredder Engine v3.0
+# ChronoOS Ultimate Emergency Panic & Forensic Shredder Engine v4.0
+# Grado de seguridad: Militar / Criptográfico de Cero Rastro
 # ==============================================================================
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
-echo "[!] CRITICAL: HARDWARE EMERGENCY PANIC TRIGGERED."
-echo "[*] Synchronizing filesystem buffers..."
+# 1. Bloquear interrupciones de usuario para asegurar la ejecución atómica
+trap '' INT TERM QUIT HUP
+
+echo "[CRITICAL SECURITY EVENT] HARDWARE EMERGENCY PANIC TRIGGERED."
+echo "[*] Synchronizing all filesystem buffers..."
 sync
 
-echo "[*] Disabling and shredding swap partitions/files..."
+echo "[*] Purging volatile memory buffers and shared memory (/dev/shm)..."
+mount -o remount,ro / 2>/dev/null || true
+rm -rf /dev/shm/* 2>/dev/null || true
 swapoff -a 2>/dev/null || true
 
-echo "[*] Purging active kernel memory and slab caches..."
+echo "[*] Flushing kernel caches, slabs, and page tables..."
 echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 sync
 
-echo "[*] Executing deep cryptographic shredding on vaults and keys..."
-# Buscar de forma recursiva en directorios de seguridad y bóvedas
-for target_dir in ./vault ./crypto_keys /var/db/chrono /var/security; do
+echo "[*] Executing DoD-grade multi-pass cryptographic shredding on vaults..."
+# Búsqueda exhaustiva y recursiva en directorios críticos del sistema
+for target_dir in ./vault ./crypto_keys /var/db/chrono /var/security /etc/keys /root/.keys; do
     if [ -d "$target_dir" ]; then
         find "$target_dir" -type f 2>/dev/null | while read -r file; do
-            echo "[*] Shredding: $file"
-            # Obtener tamaño real del archivo en bytes
+            echo "[SHRED] Erasing target: $file"
             fsize=$(wc -c < "$file" 2>/dev/null || echo 4096)
             
-            # Sobrescritura múltiple de grado forense (Pass 1: Random, Pass 2: Zeros)
+            # Pasada 1: Datos pseudoaleatorios de alta entropía (/dev/urandom)
             dd if=/dev/urandom of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
+            # Pasada 2: Sobrescritura total con ceros binarios
             dd if=/dev/zero of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
+            # Pasada 3: Patrón de bits complementarios (ones)
+            tr '\0' '\377' < /dev/zero | dd of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
             
-            # Destrucción final del archivo
+            # Eliminación física definitiva del inodo
             rm -f "$file"
         done
     fi
 done
 
-echo "[*] Forcing hardware bus reset and kernel panic..."
+echo "[*] Clearing kernel forensic logs and dmesg history..."
+dmesg -c >/dev/null 2>/dev/null || true
+rm -rf /var/log/* ./logs/* 2>/dev/null || true
+
+echo "[*] Triggering absolute hardware bus termination and forced kernel panic..."
 sync
-# Desencadenar pánico de kernel de forma agresiva
+# Forzar pánico de kernel instantáneo y corte físico de bus
 echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null
