@@ -1,12 +1,28 @@
 #!/bin/sh
-QUERY="$1"
-echo "[*] Analizando consulta en el núcleo de inferencia local..."
-if [ "$QUERY" = "status" ]; then
-    uptime
-    df -h | grep data || df -h
-elif [ "$QUERY" = "audit" ]; then
-    echo "[*] Verificando integridad del sistema de archivos..."
-    find . -name "*.sh" -type f | wc -l | awk '{print "[✓] Scripts ejecutables auditados: " $1}'
-else
-    echo "Uso: chrono-mind [status|audit]"
-fi
+# ==============================================================================
+# ChronoOS Mind - Núcleo de Inferencia y Autodiagnóstico del Sistema
+# ==============================================================================
+COMMAND="$1"
+
+case "$COMMAND" in
+    "diagnose")
+        echo "[🧠 CHRONO-MIND] Ejecutando autodiagnóstico de subsistemas..."
+        echo "- Espacio en disco:"
+        df -h | grep data || df -h
+        echo "- Memoria del sistema:"
+        free -m 2>/dev/null || cat /proc/meminfo | head -n 3
+        ;;
+    "audit-scripts")
+        echo "[🧠 CHRONO-MIND] Auditando ejecutables del directorio actual..."
+        find . -name "*.sh" -type f | while read -r script; do
+            if sh -n "$script" 2>/dev/null; then
+                echo "  [OK] $script sintaxis correcta."
+            else
+                echo "  [ERROR] $script presenta fallos de sintaxis."
+            fi
+        done
+        ;;
+    *)
+        echo "Uso: chrono-mind [diagnose|audit-scripts]"
+        ;;
+es.

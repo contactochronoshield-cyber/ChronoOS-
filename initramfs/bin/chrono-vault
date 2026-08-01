@@ -1,13 +1,30 @@
 #!/bin/sh
-export PATH=/bin:/sbin
-OP="${1:-}"
-TARGET="${2:-}"
-if [ -z "$OP" ] || [ -z "$TARGET" ]; then
-    echo "Uso: chrono-vault [lock|unlock] <recurso>"
+# ==============================================================================
+# ChronoOS Initramfs Vault - Criptografía Real AES-256-CBC
+# ==============================================================================
+ACTION="$1"
+TARGET="$2"
+
+if [ -z "$ACTION" ] || [ -z "$TARGET" ]; then
+    echo "Uso initramfs-vault: [encrypt|decrypt] <archivo>"
     exit 1
 fi
-mkdir -p /var/db/chrono
-case "$OP" in
-    lock) tar -czf "${TARGET}.chrono.tar.gz" "$TARGET" 2>/dev/null; echo "[✔] Asegurado.";;
-    unlock) tar -xzf "${TARGET}.chrono.tar.gz" 2>/dev/null; echo "[✔] Abierto.";;
-esac
+
+if [ ! -f "$TARGET" ]; then
+    echo "[!] Error crítico: Archivo no localizado -> $TARGET"
+    exit 1
+fi
+
+if [ "$ACTION" = "encrypt" ]; then
+    echo "[*] Cifrando payload de emergencia con AES-256 en initramfs..."
+    openssl enc -aes-256-cbc -salt -in "$TARGET" -out "${TARGET}.enc" && rm -f "$TARGET"
+    echo "[✓] Payload blindado: ${TARGET}.enc"
+elif [ "$ACTION" = "decrypt" ]; then
+    if [ ! -f "${TARGET}.enc" ]; then
+        echo "[!] Error: No existe el contenedor cifrado ${TARGET}.enc"
+        exit 1
+    fi
+    echo "[*] Descifrando contenedor de emergencia..."
+    openssl enc -d -aes-256-cbc -in "${TARGET}.enc" -out "$TARGET"
+    echo "[✓] Contenedor restaurado con éxito."
+fi

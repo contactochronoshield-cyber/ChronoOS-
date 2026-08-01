@@ -1,19 +1,22 @@
 #!/bin/sh
-DB="./var/inventory.db"
+# ==============================================================================
+# ChronoOS Stock - Motor de Control de Activos y Almacén Industrial
+# ==============================================================================
+DB="./var/stock_ledger.db"
 mkdir -p ./var
 touch "$DB"
 
 ACTION="$1"
-ITEM="$2"
-QTY="$3"
+SKU="$2"
+DESC="$3"
 
-if [ "$ACTION" = "add" ] && [ -n "$ITEM" ] && [ -n "$QTY" ]; then
-    TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S")
-    echo "$TIMESTAMP | ITEM: $ITEM | QTY: $QTY" >> "$DB"
-    echo "[✓] Inventario actualizado: $ITEM (Cantidad: $QTY)"
-elif [ "$ACTION" = "list" ]; then
-    echo "=== REGISTRO DE INVENTARIO INDUSTRIAL ==="
+if [ "$ACTION" = "register" ] && [ -n "$SKU" ] && [ -n "$DESC" ]; then
+    DATE=$(date -u +"%Y-%m-%d")
+    echo "$DATE | SKU:$SKU | DESC:$DESC | STATUS:VERIFIED" >> "$DB"
+    echo "[✓] Activo registrado en inventario: [$SKU] $DESC"
+elif [ "$ACTION" = "query" ]; then
+    echo "=== REGISTRO MAESTRO DE INVENTARIO CHRONO-STOCK ==="
     cat "$DB"
 else
-    echo "Uso: chrono-stock [add <item> <cantidad> | list]"
+    echo "Uso: chrono-stock [register <SKU> <Descripción> | query]"
 fi
