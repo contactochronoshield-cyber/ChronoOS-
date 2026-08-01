@@ -3,31 +3,47 @@
 #include <unistd.h>
 #include <sys/mount.h>
 #include <sys/types.h>
-#include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-void mount_virtual_filesystems() {
-    printf("[*] ChronoInit: Montando sistemas de archivos virtuales...\n");
-    mount("proc", "/proc", "proc", 0, NULL);
-    mount("sysfs", "/sys", "sysfs", 0, NULL);
-    mount("devtmpfs", "/dev", "devtmpfs", 0, NULL);
+void logo() {
+    printf("\n");
+    printf("  ██████╗ ██╗  ██╗██████╗  ██████╗ ███╗   ██╗ ██████╗  ██████╗ ███████╗\n");
+    printf(" ██╔════╝ ██║  ██║██╔══██╗██╔═══██╗████╗  ██║██╔═══██╗██╔═══██╗██╔════╝\n");
+    printf(" ██║      ███████║██████╔╝██║   ██║██╔██╗ ██║██║   ██║██║   ██║███████╗\n");
+    printf(" ██║      ██╔══██║██╔══██╗██║   ██║██║╚██╗██║██║   ██║██║   ██║╚════██║\n");
+    printf(" ╚██████╗ ██║  ██║██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝╚██████╔╝███████║\n");
+    printf("  ╚═════╝ ╚oxide╚══╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚══════╝\n");
+    printf("       [ SOVEREIGN TACTICAL OS // AIR-GAPPED KERNEL v8.0 ]\n\n");
 }
 
 int main() {
-    if (getpid() != 1) {
-        fprintf(stderr, "[!] Este programa debe correr como PID 1.\n");
-        return 1;
+    logo();
+    printf("[*] ChronoInit: Iniciando secuencia de arranque soberano...\n");
+
+    // Montar sistemas de archivos virtuales esenciales
+    if (mount("proc", "/proc", "proc", 0, NULL) != 0) {
+        perror("[!] Error montando /proc");
+    }
+    if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0) {
+        perror("[!] Error montando /sys");
+    }
+    if (mount("devtmpfs", "/dev", "devtmpfs", 0, NULL) != 0) {
+        perror("[!] Error montando /dev");
     }
 
-    printf("[+] ChronoOS Init System Iniciado.\n");
-    mount_virtual_filesystems();
+    printf("[✓] Sistemas de archivos virtuales montados correctamente.\n");
+    printf("[*] Ejecutando autodiagnóstico de la Entidad Viva...\n");
+    
+    // Ejecutar auditoría de la entidad local
+    system("./core/entity/evolution.sh pulse");
 
-    if (fork() == 0) {
-        execl("/bin/sh", "sh", "/etc/chrono/services.sh", NULL);
-        exit(0);
-    }
+    printf("[*] Abriendo consola de control táctico ChronoOS...\n");
+    
+    // Iniciar shell interactiva de control
+    char *argv[] = { "/bin/sh", NULL };
+    execv("/bin/sh", argv);
 
-    while (1) {
-        wait(NULL);
-    }
-    return 0;
+    perror("[!] Error crítico: No se pudo lanzar el shell del sistema.");
+    return 1;
 }
