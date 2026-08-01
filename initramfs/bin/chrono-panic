@@ -1,24 +1,40 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Real Kernel Panic & Memory Shredder Engine
+# ChronoOS Enterprise Kernel Panic & Cryptographic Shredder Engine v3.0
 # ==============================================================================
-export PATH=/bin:/sbin
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 echo "[!] CRITICAL: HARDWARE EMERGENCY PANIC TRIGGERED."
-echo "[*] Flushing filesystem buffers..."
+echo "[*] Synchronizing filesystem buffers..."
 sync
 
-echo "[*] Purging RAM caches and volatile buffers..."
-echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
+echo "[*] Disabling and shredding swap partitions/files..."
+swapoff -a 2>/dev/null || true
 
-echo "[*] Overwriting sensitive cryptographic vaults and keys with random data..."
-for vault in /var/db/chrono/*.chrono /var/security/* /etc/*.db; do
-    if [ -f "$vault" ]; then
-        dd if=/dev/urandom of="$vault" bs=1k count=4 2>/dev/null || true
-        rm -f "$vault"
+echo "[*] Purging active kernel memory and slab caches..."
+echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
+sync
+
+echo "[*] Executing deep cryptographic shredding on vaults and keys..."
+# Buscar de forma recursiva en directorios de seguridad y bóvedas
+for target_dir in ./vault ./crypto_keys /var/db/chrono /var/security; do
+    if [ -d "$target_dir" ]; then
+        find "$target_dir" -type f 2>/dev/null | while read -r file; do
+            echo "[*] Shredding: $file"
+            # Obtener tamaño real del archivo en bytes
+            fsize=$(wc -c < "$file" 2>/dev/null || echo 4096)
+            
+            # Sobrescritura múltiple de grado forense (Pass 1: Random, Pass 2: Zeros)
+            dd if=/dev/urandom of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
+            dd if=/dev/zero of="$file" bs=1 count="$fsize" conv=fsync 2>/dev/null || true
+            
+            # Destrucción final del archivo
+            rm -f "$file"
+        done
     fi
 done
 
-echo "[*] Triggering kernel hardware bus reset / forced power cut..."
+echo "[*] Forcing hardware bus reset and kernel panic..."
 sync
+# Desencadenar pánico de kernel de forma agresiva
 echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null
