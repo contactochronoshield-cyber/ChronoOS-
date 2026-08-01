@@ -1,0 +1,6 @@
+# ChronoOS Theme Profile: Cyberpunk Matrix
+THEME_NAME="Cyberpunk"
+COLOR_PRIMARY="\033[1;32m" # Verde brillante
+COLOR_SECONDARY="\033[1;36m" # Cian
+COLOR_ALERT="\033[1;31m" # Rojo
+COLOR_BG="\033[0m"
