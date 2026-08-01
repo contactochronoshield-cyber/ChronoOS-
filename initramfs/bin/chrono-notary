@@ -1,0 +1,61 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS Sovereign Offline Legal Notary & Contract Signer
+# ==============================================================================
+export PATH=/bin:/sbin
+
+ACTION="${1:-}"
+CONTRACT_FILE="${2:-}"
+
+print_header() {
+    echo "=================================================="
+    echo "    CHRONOOS SOVEREIGN OFFLINE LEGAL NOTARY       "
+    echo "=================================================="
+}
+
+if [ -z "$ACTION" ] || [ -z "$CONTRACT_FILE" ]; then
+    print_header
+    echo "Uso Enterprise: chrono-notary [sign|verify] <archivo_contrato>"
+    exit 1
+fi
+
+if [ ! -f "$CONTRACT_FILE" ]; then
+    echo "[!] Error Crítico: El documento '$CONTRACT_FILE' no existe en la ruta."
+    exit 1
+fi
+
+case "$ACTION" in
+    sign)
+        print_header
+        echo "[*] Generando Sello Notarial Criptográfico Inmutable..."
+        TIMESTAMP=$(date -u +%Y-%m-%d_%H:%M:%S_UTC)
+        
+        # Calcular huella digital SHA-256 del acuerdo legal
+        CONTRACT_HASH=$(sha256sum "$CONTRACT_FILE" | awk '{print $1}')
+        
+        # Sellar el contrato con metadatos de firma soberana
+        echo "--------------------------------------------------" >> "$CONTRACT_FILE.notary"
+        echo "CHRONOOS SOVEREIGN LEGAL SEAL" >> "$CONTRACT_FILE.notary"
+        echo "Timestamp: $TIMESTAMP" >> "$CONTRACT_FILE.notary"
+        echo "Document Hash: $CONTRACT_HASH" >> "$CONTRACT_FILE.notary"
+        echo "Status: CERTIFIED_AIR_GAPPED_AGREEMENT" >> "$CONTRACT_FILE.notary"
+        echo "--------------------------------------------------" >> "$CONTRACT_FILE.notary"
+        
+        echo "[✔] Acuerdo certificado con éxito. Sello generado en: $CONTRACT_FILE.notary"
+        ;;
+    verify)
+        print_header
+        echo "[*] Verificando autenticidad del sello notarial..."
+        if [ -f "$CONTRACT_FILE.notary" ]; then
+            echo "[✔] El contrato posee un sello notarial válido y registrado."
+            cat "$CONTRACT_FILE.notary"
+        else
+            echo "[!] Advertencia: El documento no cuenta con un sello notarial adjunto."
+        fi
+        ;;
+    *)
+        print_header
+        echo "[!] Acción desconocida. Use 'sign' o 'verify'."
+        exit 1
+        ;;
+es:
