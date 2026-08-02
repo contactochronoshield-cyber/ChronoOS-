@@ -1,0 +1,70 @@
+#!/bin/sh
+# ==============================================================================
+# ChronoOS - Sovereign Decentralized Code Forge (chrono-forge)
+# Author: Daniel Gonzales / Chrono Shield Networks
+# Description: Sistema de control de versiones y repositorios locales diseñado
+#              para entidades vivas y despliegues tácticos offline (Air-Gapped).
+# ==============================================================================
+
+FORGE_DIR="./.chronoforge"
+ACTION=$1
+TARGET_NAME=$2
+
+init_forge() {
+    if [ -d "$FORGE_DIR" ]; then
+        echo "[!] Este directorio ya es una ChronoForge activa."
+        exit 1
+    fi
+    mkdir -p "$FORGE_DIR/commits" "$FORGE_DIR/refs"
+    echo "main" > "$FORGE_DIR/HEAD"
+    echo "[✓] ChronoForge inicializada localmente de forma soberana."
+}
+
+commit_code() {
+    MSG=$2
+    if [ ! -d "$FORGE_DIR" ]; then
+        echo "[!] Error: No se detecta una ChronoForge en este directorio. Usa 'chrono-forge init'."
+        exit 1
+    if [ -z "$MSG" ]; then
+        MSG="Auto-commit by ChronoEntity / User"
+    fi
+
+    COMMIT_ID=$(date +%s)
+    COMMIT_HASH=$(echo "$COMMIT_ID-$MSG" | sha256sum | awk '{print $1}')
+    SHORT_HASH=$(echo "$COMMIT_HASH" | cut -c1-8)
+
+    SNAPSHOT_FILE="$FORGE_DIR/commits/$SHORT_HASH.tar.gz"
+    
+    # Empaquetar estado actual del código excluyendo la forge y builds
+    tar --exclude="./.chronoforge" --exclude="./build" -czf "$SNAPSHOT_FILE" . 2>/dev/null
+
+    echo "$SHORT_HASH | $(date '+%Y-%m-%d %H:%M:%S') | $MSG" >> "$FORGE_DIR/refs/history.log"
+    echo "[✓] Commit registrado: [$SHORT_HASH] -> $MSG"
+}
+
+log_forge() {
+    if [ ! -f "$FORGE_DIR/refs/history.log" ]; then
+        echo "[!] No hay historial de commits en esta ChronoForge."
+        exit 1
+    fi
+    echo "===================================================================="
+    echo " [CHRONO-FORGE] Historial de Versiones y Cambios de Código"
+    echo "===================================================================="
+    cat "$FORGE_DIR/refs/history.log"
+}
+
+case "$ACTION" in
+    "init")
+        init_forge
+        ;;
+    "commit")
+        commit_code "$@"
+        ;;
+    "log")
+        log_forge
+        ;;
+    *)
+        echo "ChronoOS Sovereign Code Forge (Air-Gapped VCS)"
+        echo "Uso: chrono-forge [init|commit 'mensaje'|log]"
+        ;;
+es.
