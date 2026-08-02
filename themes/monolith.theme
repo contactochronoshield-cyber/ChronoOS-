@@ -1,6 +1,0 @@
-# ChronoOS Theme Profile: Monolith Classic
-THEME_NAME="Monolith"
-COLOR_PRIMARY="\033[1;37m" # Blanco brillante
-COLOR_SECONDARY="\033[1;30m" # Gris oscuro
-COLOR_ALERT="\033[1;33m" # Amarillo advertencia
-COLOR_BG="\033[0m"
