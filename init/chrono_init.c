@@ -1,49 +1,66 @@
+/**
+ * ==============================================================================
+ * ChronoOS - Sovereign Native PID 1 Kernel Initializer (chrono_init.c)
+ * Author: Daniel Gonzales / Chrono Shield Networks
+ * Description: Proceso inicial absoluto del sistema operativo (PID 1). 
+ *              Configura el entorno de ejecución, monta sistemas de archivos 
+ *              virtuales y gestiona los daemons principales sin intermediarios.
+ * ==============================================================================
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mount.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/wait.h>
 
-void logo() {
-    printf("\n");
-    printf("  ██████╗ ██╗  ██╗██████╗  ██████╗ ███╗   ██╗ ██████╗  ██████╗ ███████╗\n");
-    printf(" ██╔════╝ ██║  ██║██╔══██╗██╔═══██╗████╗  ██║██╔═══██╗██╔═══██╗██╔════╝\n");
-    printf(" ██║      ███████║██████╔╝██║   ██║██╔██╗ ██║██║   ██║██║   ██║███████╗\n");
-    printf(" ██║      ██╔══██║██╔══██╗██║   ██║██║╚██╗██║██║   ██║██║   ██║╚════██║\n");
-    printf(" ╚██████╗ ██║  ██║██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝╚██████╔╝███████║\n");
-    printf("  ╚═════╝ ╚oxide╚══╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚══════╝\n");
-    printf("       [ SOVEREIGN TACTICAL OS // AIR-GAPPED KERNEL v8.0 ]\n\n");
+void mount_virtual_filesystems() {
+    printf("[CHRONO-KERNEL] Montando sistemas de archivos virtuales esenciales...\n");
+    
+    if (mount("proc", "/proc", "proc", 0, NULL) != 0) {
+        perror("[!] Error crítico montando /proc");
+    }
+    if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0) {
+        perror("[!] Error crítico montando /sys");
+    }
+    if (mount("devtmpfs", "/dev", "devtmpfs", 0, NULL) != 0) {
+        perror("[!] Error crítico montando /dev");
+    }
 }
 
 int main() {
-    logo();
-    printf("[*] ChronoInit: Iniciando secuencia de arranque soberano...\n");
-
-    // Montar sistemas de archivos virtuales esenciales
-    if (mount("proc", "/proc", "proc", 0, NULL) != 0) {
-        perror("[!] Error montando /proc");
-    }
-    if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0) {
-        perror("[!] Error montando /sys");
-    }
-    if (mount("devtmpfs", "/dev", "devtmpfs", 0, NULL) != 0) {
-        perror("[!] Error montando /dev");
+    if (getpid() != 1) {
+        printf("[!] ERROR FATAL: chrono_init debe ejecutarse estrictamente como PID 1.\n");
+        return 1;
     }
 
-    printf("[✓] Sistemas de archivos virtuales montados correctamente.\n");
-    printf("[*] Ejecutando autodiagnóstico de la Entidad Viva...\n");
-    
-    // Ejecutar auditoría de la entidad local
-    system("./core/entity/evolution.sh pulse");
+    printf("\n");
+    printf("  ============================================================\n");
+    printf("   CHRONO-OS SENDER KERNEL INITIALIZED // PID 1 ACTIVE          \n");
+    printf("  ============================================================\n");
 
-    printf("[*] Abriendo consola de control táctico ChronoOS...\n");
-    
-    // Iniciar shell interactiva de control
-    char *argv[] = { "/bin/sh", NULL };
-    execv("/bin/sh", argv);
+    mount_virtual_filesystems();
 
-    perror("[!] Error crítico: No se pudo lanzar el shell del sistema.");
-    return 1;
+    printf("[✓] Entorno soberano configurado. Iniciando consola del sistema...\n");
+
+    while (1) {
+        pid_t pid = fork();
+        if (pid == 0) {
+            char *argv[] = { "/bin/sh", NULL };
+            execve("/bin/sh", argv, NULL);
+            perror("[!] Error ejecutando consola de sistema");
+            exit(1);
+        } else if (pid > 0) {
+            int status;
+            pid_t terminated = wait(&status);
+            printf("[!] Proceso de consola (PID: %d) finalizado. Reiniciando subsistema...\n", terminated);
+            sleep(1);
+        } else {
+            perror("[!] Error crítico en fork de PID 1");
+            sleep(2);
+        }
+    }
+
+    return 0;
 }
