@@ -1,6 +1,0 @@
-#!/bin/sh
-export PATH=/bin:/sbin
-echo "=================================================="
-echo "       CHRONOOS SHIELD WEB AUDITOR               "
-echo "=================================================="
-echo "[✔] Auditoría web superada: 100% Privado y Air-Gapped."

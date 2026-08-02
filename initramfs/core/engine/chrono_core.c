@@ -2,6 +2,8 @@
  * ==============================================================================
  * ChronoOS - Sovereign C Kernel & System Supervisor Engine (chrono_core.c)
  * Author: Daniel Gonzales / Chrono Shield Networks
+ * Description: Motor central en C. Gestiona llamadas al sistema, auditoría 
+ *              de memoria virtual, control de procesos y hashing FNV-1a.
  * ==============================================================================
  */
 
@@ -15,7 +17,7 @@
 #include <sys/sysinfo.h>
 
 #define CHRONO_VERSION "9.5-SOVEREIGN"
-#define MAGIC_SIGNATURE 0x4348524E
+#define MAGIC_SIGNATURE 0x4348524E  // "CHRN"
 
 typedef struct {
     unsigned int magic;
@@ -62,8 +64,8 @@ void execute_secure_vault_wipe() {
     size_t sensitive_size = 4096;
     volatile char *secure_buffer = (volatile char *)malloc(sensitive_size);
     if (secure_buffer) {
-        memset((void *)secure_buffer, 0xFF, sensitive_size);
-        memset((void *)secure_buffer, 0x00, sensitive_size);
+        memset(secure_buffer, 0xFF, sensitive_size);
+        memset(secure_buffer, 0x00, sensitive_size);
         free((void *)secure_buffer);
         printf("[✓] Búferes de memoria del kernel purgados y anulados.\n");
     }

@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -static -O2
 
 all: clean build_engine build_init initrd
 
 build_engine:
-	@echo "[*] Compilando motores C de bajo nivel (modo dinámico compatible con Termux)..."
+	@echo "[*] Compilando motores C de bajo nivel..."
 	mkdir -p bin initramfs/bin
 	$(CC) $(CFLAGS) core/engine/chrono_core.c -o bin/chrono-core
 	$(CC) $(CFLAGS) core/engine/chrono_packet_auditor.c -o bin/chrono-packet-auditor

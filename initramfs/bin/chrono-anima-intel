@@ -1,6 +1,0 @@
-#!/bin/sh
-export PATH=/bin:/sbin
-echo "=================================================="
-echo "    CHRONOOS ANIMA: INTELIGENCIA GLOBAL DE AMENAZAS"
-echo "=================================================="
-echo "[✔] Matriz de amenazas 2016-2026 cargada en memoria. Sistema inmune."
