@@ -5,3 +5,5 @@ crypto_keys/*
 !build_root/rootfs/etc/ssl/*.pem
 bin/
 build/
+boot/*.img
+boot/vmlinuz*
