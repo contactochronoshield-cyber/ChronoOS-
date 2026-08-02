@@ -3,3 +3,5 @@ crypto_keys/*
 *.key
 *.pem
 !build_root/rootfs/etc/ssl/*.pem
+bin/
+build/

