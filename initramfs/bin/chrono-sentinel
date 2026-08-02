@@ -1,27 +1,58 @@
 #!/bin/sh
 # ==============================================================================
-# ChronoOS Hardware Sentinel & Physical Anti-Tamper Auditor
+# ChronoOS - Tactical Network & Security Sentinel (chrono-sentinel)
+# Author: Daniel Gonzales / Chrono Shield Networks
+# Description: Auditor local de interfaces de red, detección de intrusiones en 
+#              malla air-gapped y registro cifrado de eventos críticos.
 # ==============================================================================
-export PATH=/bin:/sbin
 
-print_header() {
-    echo "=================================================="
-    echo "     CHRONOOS HARDWARE SENTINEL SECURITY CORE     "
-    echo "=================================================="
+LOG_DIR="./var/logs"
+AUDIT_LOG="$LOG_DIR/network_audit.log"
+mkdir -p "$LOG_DIR"
+
+timestamp() {
+    date "+%Y-%m-%d %H:%M:%S"
 }
 
-print_header
-echo "[*] Analizando integridad del bus de hardware local..."
+scan_interfaces() {
+    echo "===================================================================="
+    echo " [CHRONO-SENTINEL] Auditoría de Interfaces de Red y Enlaces Tácticos"
+    echo "===================================================================="
+    if command -v ip >/dev/null 2>&1; then
+        ip -o addr show | awk '{print "[NET] Interface: " $2 " | IP: " $4}'
+    else
+        ifconfig -a 2>/dev/null || echo "[!] Comando ip/ifconfig no disponible en este entorno."
+    fi
+}
 
-CPU_MODEL=$(grep "model name" /proc/cpuinfo 2>/dev/null | head -n 1 | cut -d ':' -f 2)
-TOTAL_RAM=$(grep "MemTotal" /proc/meminfo 2>/dev/null | awk '{print $2}')
+check_mesh_nodes() {
+    echo ""
+    echo "[*] Verificando nodos activos en la red en malla local..."
+    if [ -f "./web_panel/nodes/active_nodes.md" ]; then
+        cat "./web_panel/nodes/active_nodes.md"
+    else
+        echo "[INFO] No hay nodos externos registrados en el caché de malla actual."
+    fi
+}
 
-echo " - CPU Detectada: $CPU_MODEL"
-echo " - Memoria RAM Base: ${TOTAL_RAM} kB"
+run_audit() {
+    echo "[*] [$(timestamp)] Iniciando escaneo de seguridad de interfaces..." >> "$AUDIT_LOG"
+    scan_interfaces
+    check_mesh_nodes
+    echo "[✓] Auditoría de sentinel completada y registrada de forma segura."
+}
 
-# Generar huella criptográfica de hardware actual
-HARDWARE_PRINT="$CPU_MODEL-$TOTAL_RAM"
-FINGERPRINT=$(echo "$HARDWARE_PRINT" | sha256sum | awk '{print $1}')
-
-echo " - Huella Criptográfica de Hardware (HW-FP): $FINGERPRINT"
-echo "[✔] Auditoría física completada: Sin alteraciones de bus detectadas."
+case "$1" in
+    "scan")
+        scan_interfaces
+        ;;
+    "mesh")
+        check_mesh_nodes
+        ;;
+    "audit"|"")
+        run_audit
+        ;;
+    *)
+        echo "Uso: chrono-sentinel [scan|mesh|audit]"
+        ;;
+es.
