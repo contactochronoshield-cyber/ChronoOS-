@@ -1,25 +1,22 @@
-.PHONY: all clean init chronod chronoctl
+CC = gcc
+CFLAGS = -O2 -Wall -Wextra
+LDFLAGS = -lcrypto
 
-all:
-	@echo "======================================="
-	@echo "      Building ChronoOS 1.0.0-alpha"
-	@echo "======================================="
-	@$(MAKE) -C init
-	@$(MAKE) -C services/chronod
-	@$(MAKE) -C cli/chronoctl
-	@echo ""
-	@echo "Build completed successfully."
+all: directories build/chrono_power_shield build/chrono_panic_protocol build/chrono_pin_forge
 
-init:
-	@$(MAKE) -C init
+directories:
+	mkdir -p build core scripts vault/carrington_safe crypto_keys config var/run
 
-chronod:
-	@$(MAKE) -C services/chronod
+build/chrono_power_shield: core/chrono_power_shield.c
+	$(CC) $(CFLAGS) core/chrono_power_shield.c -o build/chrono_power_shield
 
-chronoctl:
-	@$(MAKE) -C cli/chronoctl
+build/chrono_panic_protocol: core/chrono_panic_protocol.c
+	$(CC) $(CFLAGS) core/chrono_panic_protocol.c -o build/chrono_panic_protocol
+
+build/chrono_pin_forge: core/chrono_pin_forge.c
+	$(CC) $(CFLAGS) core/chrono_pin_forge.c -o build/chrono_pin_forge $(LDFLAGS)
 
 clean:
-	@$(MAKE) -C init clean
-	@$(MAKE) -C services/chronod clean
-	@$(MAKE) -C cli/chronoctl clean
+	rm -rf build/* var/* vault/*
+
+.PHONY: all directories clean
