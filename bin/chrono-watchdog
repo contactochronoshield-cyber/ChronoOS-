@@ -1,0 +1,38 @@
+#!/bin/sh
+# ChronoOS - Dead Man's Switch
+# A) Por inactividad: si el heartbeat no se actualiza en $MAX_SILENCE segundos, dispara panico
+# B) Por intentos fallidos: si access.log acumula $MAX_FAILS intentos fallidos seguidos, dispara panico
+
+MAX_SILENCE=120        # segundos sin heartbeat antes de disparar (ajustable)
+MAX_FAILS=5            # intentos fallidos seguidos antes de disparar
+HEARTBEAT_FILE="/mnt/data/heartbeat.log"
+ACCESS_LOG="./security/auth/access.log"
+PANIC_BIN="./bin/chrono-panic"
+
+echo "[chrono-watchdog] Iniciado. Vigilando inactividad (>${MAX_SILENCE}s) e intentos fallidos (>=${MAX_FAILS})."
+
+while true; do
+    # --- Chequeo A: inactividad ---
+    if [ -f "$HEARTBEAT_FILE" ]; then
+        LAST_MOD=$(stat -c%Y "$HEARTBEAT_FILE" 2>/dev/null || echo 0)
+        NOW=$(date +%s)
+        DIFF=$((NOW - LAST_MOD))
+        if [ "$DIFF" -gt "$MAX_SILENCE" ]; then
+            echo "[chrono-watchdog] Sin heartbeat por ${DIFF}s. DISPARANDO PANICO."
+            sh "$PANIC_BIN"
+            exit 1
+        fi
+    fi
+
+    # --- Chequeo B: intentos fallidos consecutivos ---
+    if [ -f "$ACCESS_LOG" ]; then
+        RECENT_FAILS=$(tail -n "$MAX_FAILS" "$ACCESS_LOG" 2>/dev/null | grep -c "FAILED")
+        if [ "$RECENT_FAILS" -ge "$MAX_FAILS" ]; then
+            echo "[chrono-watchdog] ${RECENT_FAILS} intentos fallidos seguidos. DISPARANDO PANICO."
+            sh "$PANIC_BIN"
+            exit 1
+        fi
+    fi
+
+    sleep 15
+done

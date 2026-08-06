@@ -1,19 +1,63 @@
 #!/bin/sh
+# ChronoOS - Protocolo de Panico v2
+# Deteccion de dispositivo en runtime, purga ampliada, verificacion de cada paso.
+
+FAIL=0
+step() {
+    "$@"
+    if [ $? -ne 0 ]; then
+        echo "[!] FALLO en: $*"
+        FAIL=1
+    else
+        echo "[OK] $*"
+    fi
+}
+
 echo "[!] ALERTA CRITICA - PROTOCOLO DE PANICO ACTIVADO"
 sync
+
 echo "[*] Destruyendo llave maestra (crypto-shred)..."
 if [ -f ./security/auth/master.key ]; then
-    dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc 2>/dev/null
-    rm -f ./security/auth/master.key
+    step dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc
+    step rm -f ./security/auth/master.key
+else
+    echo "[i] master.key ya no existe (¿ya se activo antes?)"
 fi
+
 echo "[*] Overwrite defensivo de bovedas cifradas..."
 for f in ./security/vaults/*; do
     [ -f "$f" ] || continue
     SIZE=$(stat -c%s "$f" 2>/dev/null || echo 0)
-    dd if=/dev/urandom of="$f" bs=1 count="$SIZE" conv=notrunc 2>/dev/null
+    step dd if=/dev/urandom of="$f" bs=1 count="$SIZE" conv=notrunc
 done
-rm -rf ./security/vaults/*
-rm -rf ./var/logs/*
-sync
-echo "[X] SISTEMA NEUTRALIZADO - LLAVE DESTRUIDA, BOVEDAS IRRECUPERABLES"
-reboot -f 2>/dev/null || poweroff -f 2>/dev/null
+step rm -rf ./security/vaults/*
+
+echo "[*] Purgando logs, temporales y cache..."
+step rm -rf ./var/logs/*
+step rm -rf ./tmp/* 2>/dev/null
+step rm -rf /tmp/chrono_* 2>/dev/null
+step rm -rf ~/.cache/chrono* 2>/dev/null
+
+echo "[*] Purgando swap si existe (deteccion en runtime, sin rutas fijas)..."
+SWAP_DEV=$(cat /proc/swaps 2>/dev/null | awk 'NR>1 {print $1; exit}')
+if [ -n "$SWAP_DEV" ]; then
+    step swapoff "$SWAP_DEV"
+    step dd if=/dev/urandom of="$SWAP_DEV" bs=1M count=16 conv=notrunc
+else
+    echo "[i] No hay swap activo, nada que purgar"
+fi
+
+echo "[*] Purgando cache de disco/kernel..."
+step sync
+echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || echo "[i] drop_caches no disponible (sin permisos root, esperado en Termux)"
+
+echo "[*] Deteniendo heartbeat (dead man's switch) para evitar re-disparo..."
+step rm -f /mnt/data/heartbeat.log ./heartbeat.log 2>/dev/null
+
+if [ "$FAIL" -eq 1 ]; then
+    echo "[!] ADVERTENCIA: uno o mas pasos fallaron (ver arriba). Purga PARCIAL."
+else
+    echo "[X] SISTEMA NEUTRALIZADO - PURGA COMPLETA VERIFICADA"
+fi
+
+reboot -f 2>/dev/null || poweroff -f 2>/dev/null || echo "[i] Sin permisos para apagar (normal en Termux sin root)"
