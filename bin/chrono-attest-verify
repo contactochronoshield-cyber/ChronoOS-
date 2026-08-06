@@ -1,0 +1,54 @@
+#!/bin/sh
+# ChronoOS - Verificador de Atestacion de Arranque
+# Corre esto en CUALQUIER momento, sin internet, para confirmar que el
+# kernel y el initramfs son EXACTAMENTE los que se desplegaron original-
+# mente, byte por byte. Si alguien los modifico (malware, tampering
+# fisico del almacenamiento), esto lo detecta.
+
+KERNEL="./boot/vmlinuz-aarch64"
+INITRD="./boot/initrd-chrono.img"
+MANIFEST="./security/auth/boot_manifest.json"
+
+if [ ! -f "$MANIFEST" ]; then
+    echo "[!] No hay manifiesto de atestacion. Corre chrono-attest-gen primero."
+    exit 1
+fi
+
+STORED_KERNEL=$(grep '"kernel_sha256"' "$MANIFEST" | sed 's/.*: "\(.*\)".*/\1/')
+STORED_INITRD=$(grep '"initrd_sha256"' "$MANIFEST" | sed 's/.*: "\(.*\)".*/\1/')
+STORED_CODE=$(grep '"short_code"' "$MANIFEST" | sed 's/.*: "\(.*\)".*/\1/')
+
+CURRENT_KERNEL=$(sha256sum "$KERNEL" 2>/dev/null | cut -d' ' -f1)
+CURRENT_INITRD=$(sha256sum "$INITRD" 2>/dev/null | cut -d' ' -f1)
+
+echo "=============================================="
+echo " VERIFICACION DE INTEGRIDAD DE ARRANQUE"
+echo "=============================================="
+
+FAIL=0
+
+if [ "$STORED_KERNEL" = "$CURRENT_KERNEL" ]; then
+    echo " [OK] Kernel: integro, coincide con el desplegado."
+else
+    echo " [ALERTA] Kernel: NO COINCIDE. Posible alteracion."
+    FAIL=1
+fi
+
+if [ "$STORED_INITRD" = "$CURRENT_INITRD" ]; then
+    echo " [OK] Initramfs: integro, coincide con el desplegado."
+else
+    echo " [ALERTA] Initramfs: NO COINCIDE. Posible alteracion."
+    FAIL=1
+fi
+
+echo ""
+echo " Codigo original registrado: $STORED_CODE"
+echo "=============================================="
+
+if [ "$FAIL" -eq 1 ]; then
+    echo " RESULTADO: INTEGRIDAD COMPROMETIDA. No confiar en este sistema."
+    exit 1
+else
+    echo " RESULTADO: SISTEMA VERIFICADO. Integridad confirmada sin conexion."
+    exit 0
+fi

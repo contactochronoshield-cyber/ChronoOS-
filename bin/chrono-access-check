@@ -33,3 +33,12 @@ if [ -f "$QUARANTINE_LOG" ] && [ -s "$QUARANTINE_LOG" ]; then
         exit 1
     fi
 fi
+
+# --- Chequeo D: atestacion de arranque ---
+if [ -x ./bin/chrono-attest-verify ]; then
+    ./bin/chrono-attest-verify > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "[!] DENEGADO: la atestacion de arranque fallo. El sistema pudo ser alterado."
+        exit 1
+    fi
+fi
