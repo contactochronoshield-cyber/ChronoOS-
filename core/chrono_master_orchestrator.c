@@ -2,12 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
-// Declaraciones de subsistemas reales integrados
-extern int chrono_power_shield_monitor_once(void);
-extern void execute_total_panic_protocol(void);
 
 void print_system_banner(void) {
     printf("==================================================\n");
@@ -21,18 +15,18 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1) {
         if (strcmp(argv[1], "--panic") == 0) {
-            printf("[ORCHESTRATOR] Comando de pánico recibido externamente.\n");
-            execute_total_panic_protocol();
-            return 0;
+            printf("[ORCHESTRATOR] Ejecutando binario de pánico crítico...\n");
+            execl("./build/chrono_panic_protocol", "chrono_panic_protocol", NULL);
+            perror("[ERROR] No se pudo ejecutar el binario de pánico");
+            return 1;
         } else if (strcmp(argv[1], "--power-check") == 0) {
-            printf("[ORCHESTRATOR] Ejecutando sondeo único de energía...\n");
-            // Ejecutar lógica de power shield
+            printf("[ORCHESTRATOR] Ejecutando sondeo de energía...\n");
             system("./build/chrono_power_shield");
             return 0;
         }
     }
 
     printf("[ORCHESTRATOR] Sistema operando en modo nominal seguro.\n");
-    printf("[ORCHESTRATOR] Uso: ./chrono_master [--panic | --power-check]\n");
+    printf("[ORCHESTRATOR] Uso: ./build/chrono_master [--panic | --power-check]\n");
     return 0;
 }
