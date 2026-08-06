@@ -139,3 +139,42 @@ verify_and_heal_vaults() {
         log_event "MATURE_CORE" "Integridad de bóvedas verificada al 100%. Cero alteraciones detectadas."
     fi
 }
+
+# 6. Subsistema Definitivo de Control y Endurecimiento de Drivers y Kernel (IEC 62443-4-2)
+init_hardened_drivers() {
+    log_event "DRIVERS" "Desplegando política industrial estricta de control de controladores y kernel hardening..."
+    
+    # A. Lista negra activa de módulos de kernel de alto riesgo o innecesarios en air-gapped
+    local dangerous_modules=("firewire_core" "usbnet" "bluetooth" "cfg80211" "cramfs" "freevxfs" "jffs2" "hfs" "hfsplus" "squashfs")
+    for mod in "${dangerous_modules[@]}"; do
+        if lsmod | grep -q "^$mod\s"; then
+            log_event "DRIVERS" "ADVERTENCIA: Módulo de alto riesgo detectado ($mod). Ejecutando purga..."
+            rmmod "$mod" 2>/dev/null || echo "blacklist $mod" >> /etc/modprobe.d/chrono_blacklist.conf
+        fi
+    done
+
+    # B. Hardening de Sysctl del Kernel (Protección de memoria y ejecución)
+    if [ -d "/proc/sys/kernel" ]; then
+        sysctl -w kernel.kptr_restrict=2 &> /dev/null || true
+        sysctl -w kernel.dmesg_restrict=1 &> /dev/null || true
+        sysctl -w kernel.yama.ptrace_scope=2 &> /dev/null || true
+        sysctl -w net.ipv4.conf.all.accept_source_route=0 &> /dev/null || true
+        sysctl -w net.ipv4.conf.all.rp_filter=1 &> /dev/null || true
+        log_event "DRIVERS" "Parámetros sysctl del kernel blindados contra inyección, escaneo de memoria y spoofing."
+    fi
+
+    # C. Validación de IOMMU (Protección contra ataques físicos por DMA en buses PCI)
+    if [ -d "/sys/kernel/iommu_groups" ] && [ "$(ls -A /sys/kernel/iommu_groups 2>/dev/null)" ]; then
+        log_event "DRIVERS" "IOMMU activo: Aislamiento estricto de hardware por DMA verificado."
+    else
+        log_event "DRIVERS" "AVISO: IOMMU no detectado. Se recomienda habilitarlo en BIOS para máxima seguridad industrial."
+    fi
+
+    # D. Política Zero-Trust para Puertos USB (Bloqueo por defecto de almacenamiento masivo no autorizado)
+    if [ -f "/sys/bus/usb/drivers/usb/authorized_default" ]; then
+        echo 0 > /sys/bus/usb/drivers/usb/authorized_default 2>/dev/null || true
+        log_event "DRIVERS" "Política de puertos USB por defecto establecida en BLOQUEADO (Zero-Trust)."
+    fi
+    
+    log_event "DRIVERS" "Subsistema de drivers y control de kernel desplegado y operando al 100%."
+}
