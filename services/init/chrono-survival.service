@@ -1,0 +1,11 @@
+[Unit]
+Description=ChronoOS Militar-Grade Survival Engine
+After=network.target
+
+[Service]
+ExecStart=/home/user/chrono-os/scripts/chrono_survival_engine.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
