@@ -1,34 +1,33 @@
 #include <stdio.h>
-#include "chronod.h"
+#include <unistd.h>
+#include <signal.h>
 
-int chronod_init(void) {
-    printf("[ChronoD] Inicializando...\n");
-    return 0;
+volatile int running = 1;
+
+void stop(int sig)
+{
+    running = 0;
 }
 
-int chronod_start(void) {
-    printf("[ChronoD] Servicios iniciados.\n");
-    return 0;
-}
+int main()
+{
+    signal(SIGINT, stop);
+    signal(SIGTERM, stop);
 
-int chronod_stop(void) {
-    printf("[ChronoD] Servicios detenidos.\n");
-    return 0;
-}
-
-int chronod_reload(void) {
-    printf("[ChronoD] Configuración recargada.\n");
-    return 0;
-}
-
-int main(void) {
-    printf("=====================================\n");
+    printf("=========================================\n");
     printf("        ChronoD Service Manager\n");
-    printf("        Version 1.0.0-alpha\n");
-    printf("=====================================\n");
+    printf("          Version 1.0.0-alpha\n");
+    printf("=========================================\n");
 
-    chronod_init();
-    chronod_start();
+    printf("[ChronoD] Inicializando...\n");
+    printf("[ChronoD] Servicios iniciados.\n");
+
+    while(running)
+    {
+        sleep(1);
+    }
+
+    printf("[ChronoD] Cerrando servicios...\n");
 
     return 0;
 }
