@@ -1,9 +1,5 @@
-security/auth/*.key
-crypto_keys/*
-*.key
-*.pem
-!build_root/rootfs/etc/ssl/*.pem
-bin/
-build/
-boot/*.img
-boot/vmlinuz*
+var/
+vault/
+config/.last_heartbeat
+config/.panic_trigger
+config/chrono_manifest.sha256
