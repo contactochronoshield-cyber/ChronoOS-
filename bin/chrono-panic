@@ -1,0 +1,19 @@
+#!/bin/sh
+echo "[!] ALERTA CRITICA - PROTOCOLO DE PANICO ACTIVADO"
+sync
+echo "[*] Destruyendo llave maestra (crypto-shred)..."
+if [ -f ./security/auth/master.key ]; then
+    dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc 2>/dev/null
+    rm -f ./security/auth/master.key
+fi
+echo "[*] Overwrite defensivo de bovedas cifradas..."
+for f in ./security/vaults/*; do
+    [ -f "$f" ] || continue
+    SIZE=$(stat -c%s "$f" 2>/dev/null || echo 0)
+    dd if=/dev/urandom of="$f" bs=1 count="$SIZE" conv=notrunc 2>/dev/null
+done
+rm -rf ./security/vaults/*
+rm -rf ./var/logs/*
+sync
+echo "[X] SISTEMA NEUTRALIZADO - LLAVE DESTRUIDA, BOVEDAS IRRECUPERABLES"
+reboot -f 2>/dev/null || poweroff -f 2>/dev/null
