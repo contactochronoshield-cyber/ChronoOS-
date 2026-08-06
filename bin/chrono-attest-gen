@@ -1,0 +1,48 @@
+#!/bin/sh
+# ChronoOS - Generador de Atestacion de Arranque
+# Se corre UNA VEZ al desplegar el equipo. Genera un manifiesto con el
+# hash exacto del kernel + initramfs desplegados, y un codigo corto
+# verificable a simple vista (para imprimir/pegar fisicamente al equipo).
+
+KERNEL="./boot/vmlinuz-aarch64"
+INITRD="./boot/initrd-chrono.img"
+MANIFEST="./security/auth/boot_manifest.json"
+mkdir -p security/auth
+
+if [ ! -f "$KERNEL" ] || [ ! -f "$INITRD" ]; then
+    echo "[!] Faltan boot/vmlinuz-aarch64 o boot/initrd-chrono.img. No se puede generar atestacion."
+    exit 1
+fi
+
+KERNEL_HASH=$(sha256sum "$KERNEL" | cut -d' ' -f1)
+INITRD_HASH=$(sha256sum "$INITRD" | cut -d' ' -f1)
+COMBINED=$(echo "${KERNEL_HASH}${INITRD_HASH}" | sha256sum | cut -d' ' -f1)
+
+# Codigo corto legible: primeros 12 caracteres del hash combinado, en grupos de 4
+SHORT_CODE=$(echo "$COMBINED" | cut -c1-12 | sed 's/\(....\)/\1-/g' | sed 's/-$//')
+
+TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+
+cat > "$MANIFEST" << EOM
+{
+  "kernel_sha256": "$KERNEL_HASH",
+  "initrd_sha256": "$INITRD_HASH",
+  "combined_sha256": "$COMBINED",
+  "short_code": "$SHORT_CODE",
+  "generated_at": "$TIMESTAMP",
+  "device_label": "ChronoOS-Deployment"
+}
+EOM
+
+chmod 400 "$MANIFEST"
+
+echo "=============================================="
+echo " ATESTACION DE ARRANQUE GENERADA"
+echo "=============================================="
+echo " Codigo de verificacion (anota o imprime este codigo,"
+echo " pegalo fisicamente en el equipo desplegado):"
+echo ""
+echo "   ${SHORT_CODE}"
+echo ""
+echo " Manifiesto completo guardado en: $MANIFEST"
+echo "=============================================="
