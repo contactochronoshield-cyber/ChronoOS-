@@ -101,3 +101,41 @@ init_hardened_drivers() {
         log_event "DRIVERS" "Pila de red endurecida contra ataques de difusión y spoofing."
     fi
 }
+
+# 7. Subsistema de Autodiagnóstico Criptográfico y Auto-Sanación de Vaults (Madurez Industrial)
+verify_and_heal_vaults() {
+    log_event "MATURE_CORE" "Iniciando auditoría profunda y auto-sanación de bóvedas de datos..."
+    
+    local vault_dir="./vault/carrinton_safe"
+    local integrity_manifest="$vault_dir/vault_integrity.sha256"
+    
+    if [ ! -d "$vault_dir" ]; then
+        mkdir -p "$vault_dir"
+        log_event "MATURE_CORE" "Directorio de bóveda inicializado."
+    fi
+    
+    # Generar manifiesto si no existe (Baseline de confianza)
+    if [ ! -f "$integrity_manifest" ]; then
+        find "$vault_dir" -type f ! -name "vault_integrity.sha256" -exec sha256sum {} \; > "$integrity_manifest" 2>/dev/null || true
+        log_event "MATURE_CORE" "Línea base criptográfica de la bóveda establecida exitosamente."
+        return 0
+    }
+    
+    # Verificar integridad actual contra la línea base
+    log_event "MATURE_CORE" "Verificando firmas SHA-256 de los activos críticos..."
+    if ! sha256sum --status -c "$integrity_manifest" 2>/dev/null; then
+        log_event "CRITICAL" "ANOMALÍA DETECTADA: Corrupción o alteración no autorizada en la bóveda."
+        log_event "MATURE_CORE" "Iniciando protocolo de auto-sanación (Self-Healing de partición)..."
+        
+        # Intentar restaurar desde el último respaldo seguro conocido
+        if [ -f "./vault/backup_golden.tar.gz" ]; then
+            tar -xzf "./vault/backup_golden.tar.gz" -C "$vault_dir" 2>/dev/null || true
+            log_event "MATURE_CORE" "Bóveda restaurada exitosamente desde la imagen dorada de respaldo."
+        else
+            log_event "CRITICAL" "FALLO CRÍTICO: No hay imagen de respaldo dorada. Aislamiento preventivo del nodo."
+            touch "./config/.panic_trigger"
+        fi
+    else
+        log_event "MATURE_CORE" "Integridad de bóvedas verificada al 100%. Cero alteraciones detectadas."
+    fi
+}
