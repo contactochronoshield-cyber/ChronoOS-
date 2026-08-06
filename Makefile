@@ -1,17 +1,25 @@
-CC = zig cc -target aarch64-linux-musl
-CFLAGS = -Wall -Wextra -O2 -static
+.PHONY: all clean init chronod chronoctl
 
-.PHONY: all clean build
+all:
+	@echo "======================================="
+	@echo "      Building ChronoOS 1.0.0-alpha"
+	@echo "======================================="
+	@$(MAKE) -C init
+	@$(MAKE) -C services/chronod
+	@$(MAKE) -C cli/chronoctl
+	@echo ""
+	@echo "Build completed successfully."
 
-all: clean build
+init:
+	@$(MAKE) -C init
 
-build:
-	@echo "[*] Compilando componentes del sistema operativo en C (Zig/musl/aarch64)..."
-	mkdir -p bin build
-	$(CC) $(CFLAGS) core/engine/chrono_core.c -o bin/chrono-core
-	$(CC) $(CFLAGS) init/chrono_init.c -o build/chrono_init
-	@echo "[✓] Compilación nativa completada con éxito."
+chronod:
+	@$(MAKE) -C services/chronod
+
+chronoctl:
+	@$(MAKE) -C cli/chronoctl
 
 clean:
-	@echo "[*] Limpiando artefactos temporales..."
-	rm -rf build bin
+	@$(MAKE) -C init clean
+	@$(MAKE) -C services/chronod clean
+	@$(MAKE) -C cli/chronoctl clean

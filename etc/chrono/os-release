@@ -1,0 +1,6 @@
+NAME="ChronoOS"
+VERSION="1.0.0-alpha"
+ID=chrono
+PRETTY_NAME="ChronoOS 1.0.0 Alpha"
+HOME_URL="https://github.com/contactochronoshield-cyber/chrono-os"
+SUPPORT_URL="https://github.com/contactochronoshield-cyber/chrono-os/issues"
