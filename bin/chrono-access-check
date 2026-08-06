@@ -23,3 +23,13 @@ fi
 
 echo "[✓] Acceso permitido: sin alertas activas."
 exit 0
+
+# --- Chequeo C: dispositivos en cuarentena (hardware guard) ---
+QUARANTINE_LOG="./security/auth/quarantine.log"
+if [ -f "$QUARANTINE_LOG" ] && [ -s "$QUARANTINE_LOG" ]; then
+    RECENT_QUARANTINE=$(tail -n 5 "$QUARANTINE_LOG" 2>/dev/null | wc -l)
+    if [ "$RECENT_QUARANTINE" -gt 0 ]; then
+        echo "[!] DENEGADO: hay hardware en cuarentena sin aprobar."
+        exit 1
+    fi
+fi
