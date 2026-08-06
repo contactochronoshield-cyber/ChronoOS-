@@ -1,3 +1,6 @@
-# ChronoOS Hardware Auto-detection Rules
-SUBSYSTEM=="net", ACTION=="add", RUN+="/bin/sh -c 'ip link set %k up'"
-SUBSYSTEM=="block", ACTION=="add", ENV{ID_FS_USAGE}=="filesystem", RUN+="/bin/sh -c 'mkdir -p /mnt/%k && mount /dev/%k /mnt/%k'"
+# ChronoOS - Whitelisting de hardware USB (IEC 62443 style)
+# Por defecto: cualquier dispositivo USB nuevo se marca como NO autorizado
+# y se registra, no se bloquea a nivel driver (eso requiere root).
+
+SUBSYSTEM=="usb", ACTION=="add", RUN+="/data/data/com.termux/files/home/chrono-os/bin/chrono-usb-guard %k"
+SUBSYSTEM=="usb", ACTION=="remove", RUN+="/data/data/com.termux/files/home/chrono-os/bin/chrono-usb-guard %k remove"
