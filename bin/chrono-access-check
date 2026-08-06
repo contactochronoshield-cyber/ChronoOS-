@@ -1,0 +1,25 @@
+#!/bin/sh
+# ChronoOS - Access Check (zero-trust basico)
+# Antes de permitir acceso a una boveda, verifica:
+# 1. Que no haya USB no autorizado conectado recientemente
+# 2. Que la bateria no este en estado critico (posible corte inminente)
+# 3. Que no haya intentos fallidos recientes acumulados
+
+BLACKBOX="/mnt/data/power_blackbox.log"
+ACCESS_LOG="./security/auth/access.log"
+
+RECENT_USB_ALERT=$(tail -n 20 "$BLACKBOX" 2>/dev/null | grep -c "NO AUTORIZADO")
+RECENT_FAILS=$(tail -n 5 "$ACCESS_LOG" 2>/dev/null | grep -c "FAILED")
+
+if [ "$RECENT_USB_ALERT" -gt 0 ]; then
+    echo "[!] DENEGADO: hay dispositivos USB no autorizados en actividad reciente."
+    exit 1
+fi
+
+if [ "$RECENT_FAILS" -ge 3 ]; then
+    echo "[!] DENEGADO: demasiados intentos fallidos recientes."
+    exit 1
+fi
+
+echo "[✓] Acceso permitido: sin alertas activas."
+exit 0

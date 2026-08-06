@@ -1,0 +1,36 @@
+#!/bin/sh
+# ChronoOS - USB Guard
+# Se ejecuta en cada conexion/desconexion USB. Compara contra whitelist,
+# registra en blackbox log, y marca como sospechoso si no esta autorizado.
+
+WHITELIST="./etc/chrono/usb_whitelist.conf"
+BLACKBOX="/mnt/data/power_blackbox.log"
+DEVICE="$1"
+ACTION="${2:-add}"
+
+log() {
+    TS=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "[$TS] [chrono-usb-guard] $1" >> "$BLACKBOX"
+}
+
+if [ "$ACTION" = "remove" ]; then
+    log "Dispositivo USB desconectado: $DEVICE"
+    exit 0
+fi
+
+# Buscar el vendor:product del dispositivo recien conectado
+DEVPATH="/sys/bus/usb/devices/$DEVICE"
+if [ -f "$DEVPATH/idVendor" ] && [ -f "$DEVPATH/idProduct" ]; then
+    VID=$(cat "$DEVPATH/idVendor" 2>/dev/null)
+    PID=$(cat "$DEVPATH/idProduct" 2>/dev/null)
+    IDPAIR="${VID}:${PID}"
+
+    if grep -q "^${IDPAIR}" "$WHITELIST" 2>/dev/null; then
+        log "USB AUTORIZADO conectado: $IDPAIR ($DEVICE)"
+    else
+        log "ALERTA: USB NO AUTORIZADO conectado: $IDPAIR ($DEVICE) - requiere revision manual"
+        echo "FAILED usb_unauthorized $IDPAIR" >> ./security/auth/access.log
+    fi
+else
+    log "USB conectado sin poder leer vendor/product: $DEVICE"
+fi
