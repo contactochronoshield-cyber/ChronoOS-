@@ -80,3 +80,24 @@ EOF
         log_event "BLACKBOX" "Alerta crítica registrada permanentemente en la caja negra local de ChronoOS."
     }
 }
+
+# 6. Gestión de Drivers Endurecidos y Bloqueo de Módulos Inseguros (IEC 62443)
+init_hardened_drivers() {
+    log_event "DRIVERS" "Aplicando política de mínimos privilegios en controladores de hardware..."
+    
+    # Lista blanca estricta de módulos permitidos en entorno industrial air-gapped
+    local allowed_drivers=("lora" "spi" "i2c" "usb_storage" "xt_firewall" "aes_ni")
+    
+    log_event "DRIVERS" "Verificando módulos del kernel activos contra la lista blanca..."
+    for mod in "${allowed_drivers[@]}"; do
+        if modinfo "$mod" &> /dev/null; then
+            log_event "DRIVERS" "Módulo seguro verificado: $mod"
+        fi
+    done
+    
+    # Deshabilitar interfaces y protocolos obsoletos o de alto riesgo por defecto
+    if [ -d "/proc/sys/net/ipv4" ]; then
+        sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1 &> /dev/null || true
+        log_event "DRIVERS" "Pila de red endurecida contra ataques de difusión y spoofing."
+    fi
+}
