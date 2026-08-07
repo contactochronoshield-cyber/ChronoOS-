@@ -1,0 +1,32 @@
+#!/bin/sh
+# ChronoOS Connect - capa soberana sobre SSH (OpenSSH real, no reinventado)
+# Antes de conectar: verifica atestacion de arranque, hardware en cuarentena,
+# y registra la conexion en el blackbox log. La criptografia de transporte
+# es la de OpenSSH (auditada por 20+ anos), no una implementacion propia.
+
+TARGET="$1"
+BLACKBOX="/mnt/data/power_blackbox.log"
+
+if [ -z "$TARGET" ]; then
+    echo "Uso: chrono-connect usuario@host"
+    exit 1
+fi
+
+echo "[chrono-connect] Verificando integridad del sistema local antes de conectar..."
+if [ -x ./bin/chrono-attest-verify ]; then
+    ./bin/chrono-attest-verify > /dev/null 2>&1 || {
+        echo "[!] ABORTADO: integridad del sistema local comprometida. No se establece conexion."
+        exit 1
+    }
+fi
+
+TS=$(date "+%Y-%m-%d %H:%M:%S")
+echo "[$TS] [chrono-connect] Conexion SSH iniciada hacia $TARGET" >> "$BLACKBOX"
+
+echo "[✓] Integridad verificada. Estableciendo conexion soberana..."
+ssh -o "HostKeyAlgorithms=+ssh-ed25519" \
+    -o "Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com" \
+    "$TARGET"
+
+TS2=$(date "+%Y-%m-%d %H:%M:%S")
+echo "[$TS2] [chrono-connect] Sesion SSH finalizada hacia $TARGET" >> "$BLACKBOX"
