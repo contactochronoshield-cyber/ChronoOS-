@@ -1,0 +1,19 @@
+#!/bin/sh
+# ChronoOS - Shield DNS
+# Genera un archivo hosts que redirige rastreadores conocidos a 0.0.0.0
+# Uso: aplica esto donde tu sistema lea /etc/hosts (Termux, o el rootfs
+# del Chrono Core Box). En Android sin root no se puede tocar el hosts
+# del sistema, pero SI se puede aplicar dentro de Termux y dentro de
+# cualquier despliegue Linux del Chrono Core Box.
+
+BLOCKLIST="./etc/chrono/tracker_blocklist.conf"
+OUTPUT="./etc/chrono/hosts_shield"
+
+echo "# ChronoOS Shield DNS - generado $(date)" > "$OUTPUT"
+grep -v '^#' "$BLOCKLIST" | grep -v '^$' | while read -r domain; do
+    echo "0.0.0.0 $domain" >> "$OUTPUT"
+done
+
+COUNT=$(grep -c '^0.0.0.0' "$OUTPUT")
+echo "[✓] $COUNT dominios de rastreo bloqueados en $OUTPUT"
+echo "[i] Para aplicar en Termux: cat $OUTPUT >> \$PREFIX/etc/hosts (revisa duplicados antes)"

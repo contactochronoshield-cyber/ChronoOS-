@@ -1,0 +1,29 @@
+#!/bin/sh
+# ChronoOS - Auditor de Privacidad de Apps
+# Sin root: usa 'pm' (package manager) de Android, disponible en Termux
+# con termux-api, para listar que apps tienen permisos sensibles.
+
+echo "=============================================="
+echo " CHRONO PRIVACY AUDIT - Permisos sensibles"
+echo "=============================================="
+
+if ! command -v pm >/dev/null 2>&1; then
+    echo "[!] 'pm' no disponible en este entorno. Este audit requiere Termux en Android."
+    exit 1
+fi
+
+for PERM in "CAMERA" "RECORD_AUDIO" "ACCESS_FINE_LOCATION" "READ_CONTACTS" "READ_SMS"; do
+    echo ""
+    echo "--- Apps con permiso: $PERM ---"
+    pm list packages -e 2>/dev/null | cut -d: -f2 | while read -r pkg; do
+        if dumpsys package "$pkg" 2>/dev/null | grep -q "android.permission.$PERM: granted=true"; then
+            echo "  [!] $pkg"
+        fi
+    done
+done
+
+echo ""
+echo "=============================================="
+echo " Revisa esta lista: cualquier app aqui tiene acceso"
+echo " activo a datos sensibles de tu dispositivo."
+echo "=============================================="

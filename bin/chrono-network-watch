@@ -1,0 +1,22 @@
+#!/bin/sh
+# ChronoOS - Network Watch
+# Muestra conexiones de red activas del dispositivo en tiempo real,
+# resaltando si coinciden con dominios/IPs de la blocklist de rastreo.
+
+echo "=============================================="
+echo " CHRONO NETWORK WATCH - Conexiones activas"
+echo "=============================================="
+
+if command -v ss >/dev/null 2>&1; then
+    ss -tunp 2>/dev/null | awk 'NR>1 {print $5}' | sort -u
+elif command -v netstat >/dev/null 2>&1; then
+    netstat -tunp 2>/dev/null | awk 'NR>2 {print $5}' | sort -u
+else
+    echo "[!] Ni 'ss' ni 'netstat' disponibles. Instala con: pkg install iproute2"
+    exit 1
+fi
+
+echo "=============================================="
+echo " Compara estas IPs/dominios contra tu blocklist en"
+echo " etc/chrono/tracker_blocklist.conf"
+echo "=============================================="
