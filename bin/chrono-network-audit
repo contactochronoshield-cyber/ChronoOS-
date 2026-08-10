@@ -1,0 +1,117 @@
+#!/bin/sh
+# ChronoOS - Network Audit
+# Escanea la red local del conjunto buscando los 3 fallos documentados
+# como causa real de CVEs en intercomunicadores (2N, Akuvox, Hikvision,
+# Dahua, 2024-2025): credenciales por defecto, RTSP sin autenticacion,
+# y dispositivos con puertos de administracion expuestos sin cifrar.
+#
+# LIMITE HONESTO: esto NO es una base de datos de CVEs completa, ni
+# reemplaza un escaner profesional (Nessus, OpenVAS). Cubre los 3
+# patrones especificos documentados como causa raiz mas comun en
+# sistemas de acceso residencial. Para auditorias formales de cliente
+# institucional, complementar con una herramienta certificada.
+
+SUBNET="${1:-192.168.1.0/24}"
+REPORT="/mnt/data/network_audit_$(date +%Y%m%d_%H%M%S).txt"
+
+echo "=============================================="
+echo " CHRONO NETWORK AUDIT"
+echo " Red: $SUBNET"
+echo " $(date '+%Y-%m-%d %H:%M:%S')"
+echo "=============================================="
+
+if ! command -v nmap >/dev/null 2>&1; then
+    echo "[!] nmap no disponible. Instala con: pkg install nmap"
+    exit 1
+fi
+
+echo "[*] Descubriendo dispositivos activos en la red..."
+HOSTS=$(nmap -sn "$SUBNET" 2>/dev/null | grep "Nmap scan report" | awk '{print $NF}' | tr -d '()')
+
+if [ -z "$HOSTS" ]; then
+    echo "[!] No se encontraron dispositivos activos en $SUBNET"
+    exit 1
+fi
+
+HOST_COUNT=$(echo "$HOSTS" | wc -l)
+echo "[✓] $HOST_COUNT dispositivo(s) encontrado(s)"
+echo ""
+
+{
+echo "CHRONO NETWORK AUDIT REPORT - $(date)"
+echo "Red escaneada: $SUBNET"
+echo "=============================================="
+} > "$REPORT"
+
+TOTAL_ISSUES=0
+
+for host in $HOSTS; do
+    echo "--- Analizando $host ---"
+    echo "" >> "$REPORT"
+    echo "HOST: $host" >> "$REPORT"
+
+    # 1. Puertos abiertos relevantes
+    OPEN_PORTS=$(nmap -p 21,22,23,80,443,554,8000,8080,8443 -T4 "$host" 2>/dev/null | grep "^[0-9]" | grep open)
+    echo "$OPEN_PORTS" >> "$REPORT"
+
+    # --- CHEQUEO 1: RTSP sin autenticacion (puerto 554, streams de camara) ---
+    if echo "$OPEN_PORTS" | grep -q "554"; then
+        echo "  [*] Puerto RTSP (554) abierto - verificando si requiere autenticacion..."
+        RTSP_RESPONSE=$(timeout 3 curl -s -o /dev/null -w "%{http_code}" "rtsp://$host:554/" 2>/dev/null)
+        if [ "$RTSP_RESPONSE" != "401" ] && [ -n "$RTSP_RESPONSE" ]; then
+            echo "  [!] RIESGO: RTSP en $host podria estar SIN autenticacion (video expuesto)"
+            echo "  [!] RIESGO RTSP SIN AUTH: $host" >> "$REPORT"
+            TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+            ./bin/chrono-ledger append "AUDIT_RTSP_EXPOSED" "host=$host" 2>/dev/null
+        else
+            echo "  [OK] RTSP parece requerir autenticacion"
+        fi
+    fi
+
+    # --- CHEQUEO 2: Credenciales por defecto en interfaces web de administracion ---
+    for port in 80 443 8080 8443; do
+        if echo "$OPEN_PORTS" | grep -q "^${port}"; then
+            echo "  [*] Puerto web $port abierto - verificando credenciales por defecto comunes..."
+            for cred in "admin:admin" "admin:1234" "admin:password" "root:root" "admin:"; do
+                user=$(echo "$cred" | cut -d: -f1)
+                pass=$(echo "$cred" | cut -d: -f2)
+                RESULT=$(timeout 3 curl -s -o /dev/null -w "%{http_code}" -u "$user:$pass" "http://$host:$port/" 2>/dev/null)
+                if [ "$RESULT" = "200" ]; then
+                    echo "  [!] CRITICO: $host:$port acepta credenciales por defecto ($cred)"
+                    echo "  [!] CRITICO CREDENCIALES DEFECTO: $host:$port ($cred)" >> "$REPORT"
+                    TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+                    ./bin/chrono-ledger append "AUDIT_DEFAULT_CREDS" "host=$host:$port" 2>/dev/null
+                    break
+                fi
+            done
+        fi
+    done
+
+    # --- CHEQUEO 3: Telnet abierto (protocolo sin cifrar, deberia estar deshabilitado) ---
+    if echo "$OPEN_PORTS" | grep -q "^23"; then
+        echo "  [!] RIESGO: Telnet (23) abierto - protocolo sin cifrar, deberia deshabilitarse"
+        echo "  [!] RIESGO TELNET ABIERTO: $host" >> "$REPORT"
+        TOTAL_ISSUES=$((TOTAL_ISSUES + 1))
+        ./bin/chrono-ledger append "AUDIT_TELNET_EXPOSED" "host=$host" 2>/dev/null
+    fi
+
+    echo ""
+done
+
+echo "=============================================="
+echo " RESUMEN: $TOTAL_ISSUES problema(s) encontrado(s) en $HOST_COUNT dispositivos"
+echo " Reporte completo: $REPORT"
+echo "=============================================="
+
+{
+echo ""
+echo "=============================================="
+echo "RESUMEN: $TOTAL_ISSUES problemas en $HOST_COUNT dispositivos"
+} >> "$REPORT"
+
+./bin/chrono-ledger append "NETWORK_AUDIT_COMPLETED" "subnet=$SUBNET issues=$TOTAL_ISSUES hosts=$HOST_COUNT" 2>/dev/null
+
+if [ "$TOTAL_ISSUES" -gt 0 ]; then
+    exit 1
+fi
+exit 0
