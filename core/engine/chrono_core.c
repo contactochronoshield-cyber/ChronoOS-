@@ -10,7 +10,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#define CHRONO_VERSION "10.1-SOVEREIGN"
+#define CHRONO_VERSION "1.0.0-rc1"
 #define KEY_LEN 32
 #define IV_LEN 12
 #define TAG_LEN 16
