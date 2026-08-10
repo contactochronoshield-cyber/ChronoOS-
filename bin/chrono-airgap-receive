@@ -1,0 +1,69 @@
+#!/bin/sh
+# ChronoOS - Airgap Receive
+# Reconstruye un archivo a partir de una secuencia de codigos QR leidos
+# con camara (via termux-api) o desde imagenes ya capturadas. Verifica
+# el checksum SHA-256 antes de aceptar el archivo como valido.
+
+OUTDIR="/tmp/chrono_airgap_recv_$$"
+mkdir -p "$OUTDIR"
+FINAL_OUTPUT="$1"
+
+if [ -z "$FINAL_OUTPUT" ]; then
+    echo "Uso: chrono-airgap-receive <archivo_salida>"
+    echo ""
+    echo "Modo: apunta la camara a cada QR en orden. Presiona Ctrl+C cuando termines."
+    exit 1
+fi
+
+if ! command -v termux-camera-photo >/dev/null 2>&1; then
+    echo "[!] termux-api no instalado. Instala con: pkg install termux-api"
+    echo "[i] Alternativa: si ya tienes las imagenes QR capturadas, usa:"
+    echo "    zbarimg -q imagen.png  (para leer manualmente cada una)"
+    exit 1
+fi
+
+echo "[*] Modo receptor optico activo. Capturando QR headers primero..."
+echo "[i] Apunta la camara trasera al codigo QR de CABECERA y presiona Enter."
+read -r _
+termux-camera-photo -c 0 "$OUTDIR/capture_header.jpg" 2>/dev/null
+
+HEADER_DATA=$(zbarimg -q --raw "$OUTDIR/capture_header.jpg" 2>/dev/null)
+if [ -z "$HEADER_DATA" ]; then
+    echo "[!] No se pudo leer el QR de cabecera. Reintenta con mejor luz/enfoque."
+    exit 1
+fi
+
+CHECKSUM=$(echo "$HEADER_DATA" | cut -d'|' -f2)
+TOTAL_CHUNKS=$(echo "$HEADER_DATA" | cut -d'|' -f3)
+FILENAME=$(echo "$HEADER_DATA" | cut -d'|' -f4)
+
+echo "[✓] Cabecera leida: archivo=$FILENAME chunks=$TOTAL_CHUNKS checksum=$CHECKSUM"
+echo ""
+
+> "$OUTDIR/reassembled.b64"
+i=1
+while [ "$i" -le "$TOTAL_CHUNKS" ]; do
+    echo "[*] Fragmento $i de $TOTAL_CHUNKS - apunta la camara y presiona Enter."
+    read -r _
+    termux-camera-photo -c 0 "$OUTDIR/capture_$i.jpg" 2>/dev/null
+    CHUNK_DATA=$(zbarimg -q --raw "$OUTDIR/capture_$i.jpg" 2>/dev/null)
+    CHUNK_PAYLOAD=$(echo "$CHUNK_DATA" | cut -d'|' -f4-)
+    echo -n "$CHUNK_PAYLOAD" >> "$OUTDIR/reassembled.b64"
+    i=$((i + 1))
+done
+
+base64 -d "$OUTDIR/reassembled.b64" > "$FINAL_OUTPUT" 2>/dev/null
+RECEIVED_CHECKSUM=$(sha256sum "$FINAL_OUTPUT" | cut -d' ' -f1)
+
+echo ""
+if [ "$RECEIVED_CHECKSUM" = "$CHECKSUM" ]; then
+    echo "[✓] TRANSFERENCIA VERIFICADA - checksum coincide."
+    echo "    Archivo reconstruido en: $FINAL_OUTPUT"
+    ./bin/chrono-ledger append "AIRGAP_TRANSFER_RECEIVED_OK" "file=$FILENAME checksum=$RECEIVED_CHECKSUM" 2>/dev/null
+else
+    echo "[!] CHECKSUM NO COINCIDE - la transferencia esta corrupta o incompleta."
+    echo "    Esperado: $CHECKSUM"
+    echo "    Recibido: $RECEIVED_CHECKSUM"
+    ./bin/chrono-ledger append "AIRGAP_TRANSFER_FAILED" "file=$FILENAME expected=$CHECKSUM got=$RECEIVED_CHECKSUM" 2>/dev/null
+    exit 1
+fi

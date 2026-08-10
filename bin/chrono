@@ -97,6 +97,13 @@ case "$1" in
             *) echo "Uso: chrono crypto [encrypt|decrypt] <in> <out> <keyfile>"; exit 1 ;;
         esac
         ;;
+    airgap)
+        case "$2" in
+            send) shift 2; exec "$BINDIR/chrono-airgap-send" "$@" ;;
+            receive) shift 2; exec "$BINDIR/chrono-airgap-receive" "$@" ;;
+            *) echo "Uso: chrono airgap [send <archivo>|receive <salida>]"; exit 1 ;;
+        esac
+        ;;
     doctor)
         exec "$BINDIR/chrono-doctor"
         ;;

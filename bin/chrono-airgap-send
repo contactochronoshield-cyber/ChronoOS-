@@ -1,0 +1,52 @@
+#!/bin/sh
+# ChronoOS - Airgap Send
+# Transfiere un archivo pequeno (config, bundle firmado, comando) FUERA
+# de un sistema air-gapped sin usar USB ni red - solo mostrando codigos QR
+# en pantalla que otro dispositivo lee con camara. Cero superficie de
+# ataque fisica: no hay puerto que conectar, no hay firmware USB que
+# pueda ser comprometido (el vector que uso Stuxnet).
+
+FILE="$1"
+CHUNK_SIZE=1200  # bytes por QR, deja margen de sobra para el codigo QR
+
+if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
+    echo "Uso: chrono-airgap-send <archivo>"
+    exit 1
+fi
+
+OUTDIR="/tmp/chrono_airgap_$$"
+mkdir -p "$OUTDIR"
+
+CHECKSUM=$(sha256sum "$FILE" | cut -d' ' -f1)
+SIZE=$(stat -c%s "$FILE")
+
+echo "[*] Preparando transferencia optica de: $FILE ($SIZE bytes)"
+echo "[*] Checksum SHA-256: $CHECKSUM"
+
+# Codificar en base64 y dividir en chunks que quepan en un QR
+base64 -w0 "$FILE" > "$OUTDIR/encoded.b64"
+split -b "$CHUNK_SIZE" "$OUTDIR/encoded.b64" "$OUTDIR/chunk_"
+
+TOTAL_CHUNKS=$(ls "$OUTDIR"/chunk_* | wc -l)
+echo "[*] Dividido en $TOTAL_CHUNKS fragmentos QR"
+
+# Generar el QR de cabecera con metadata (checksum, total de fragmentos)
+echo "CHRONO_AIRGAP_HEADER|${CHECKSUM}|${TOTAL_CHUNKS}|$(basename "$FILE")" | \
+    qrencode -o "$OUTDIR/qr_header.png" -s 8
+
+i=1
+for chunk in "$OUTDIR"/chunk_*; do
+    printf "CHRONO_AIRGAP_CHUNK|%d|%d|" "$i" "$TOTAL_CHUNKS" > "$OUTDIR/chunk_payload_$i.txt"
+    cat "$chunk" >> "$OUTDIR/chunk_payload_$i.txt"
+    qrencode -o "$OUTDIR/qr_$(printf '%03d' $i).png" -s 8 -r "$OUTDIR/chunk_payload_$i.txt"
+    i=$((i + 1))
+done
+
+echo ""
+echo "[✓] $TOTAL_CHUNKS codigos QR generados en: $OUTDIR"
+echo "[i] Muestra primero qr_header.png, luego qr_001.png, qr_002.png... en orden,"
+echo "    frente a la camara del dispositivo receptor (que corre chrono-airgap-receive)."
+echo ""
+ls "$OUTDIR"/qr_*.png
+
+./bin/chrono-ledger append "AIRGAP_TRANSFER_SENT" "file=$(basename "$FILE") chunks=$TOTAL_CHUNKS checksum=$CHECKSUM" 2>/dev/null
