@@ -1,0 +1,137 @@
+#!/bin/sh
+# ChronoOS - Doctor / Selftest
+# Corre todas las verificaciones del sistema en una sola pasada y da un
+# reporte de salud claro. Pensado tanto para desarrollo (tu) como para
+# que un cliente confirme que su despliegue esta sano sin saber que
+# comando especifico corre que cosa.
+
+PASS=0
+FAIL=0
+WARN=0
+
+ok()   { echo "  [OK]   $1"; PASS=$((PASS+1)); }
+bad()  { echo "  [FAIL] $1"; FAIL=$((FAIL+1)); }
+warn() { echo "  [WARN] $1"; WARN=$((WARN+1)); }
+
+echo "=============================================="
+echo " CHRONO DOCTOR - Diagnostico completo del sistema"
+echo " $(date '+%Y-%m-%d %H:%M:%S')"
+echo "=============================================="
+
+echo ""
+echo "--- 1. Binarios core ---"
+for bin in chrono-core chrono-panic chrono-pin-forge chrono-pin-verify \
+           chrono-ledger chrono-attest-gen chrono-attest-verify \
+           chrono-hardware-guard chrono-power-shield; do
+    if [ -x "./bin/$bin" ]; then
+        ok "$bin presente y ejecutable"
+    else
+        bad "$bin FALTA o no es ejecutable"
+    fi
+done
+
+echo ""
+echo "--- 2. Llaves y secretos ---"
+if [ -f "./security/auth/master.key" ]; then
+    SIZE=$(stat -c%s "./security/auth/master.key" 2>/dev/null || echo 0)
+    if [ "$SIZE" -eq 32 ]; then
+        ok "master.key presente, tamano correcto (32 bytes)"
+    else
+        warn "master.key presente pero tamano inesperado ($SIZE bytes, se esperaban 32)"
+    fi
+else
+    warn "master.key no existe (¿ya se activo el protocolo de panico?)"
+fi
+
+if [ -f "./security/auth/pinforge_ed25519.pem" ] && [ -f "./security/auth/pinforge_ed25519.pub" ]; then
+    ok "Par de llaves Ed25519 de Pin Forge presente"
+else
+    warn "Llaves de Pin Forge no generadas todavia (se crean en el primer 'chrono forge')"
+fi
+
+echo ""
+echo "--- 3. Atestacion de arranque ---"
+if [ -f "./security/auth/boot_manifest.json" ]; then
+    ok "Manifiesto de atestacion existe"
+    if [ -x "./bin/chrono-attest-verify" ]; then
+        if ./bin/chrono-attest-verify > /tmp/doctor_attest.log 2>&1; then
+            ok "Verificacion de integridad de arranque: PASA"
+        else
+            bad "Verificacion de integridad de arranque: FALLA (ver detalle abajo)"
+            cat /tmp/doctor_attest.log | sed 's/^/         /'
+        fi
+    fi
+else
+    warn "No hay manifiesto de atestacion (corre 'chrono attest gen' tras el despliegue)"
+fi
+
+echo ""
+echo "--- 4. Libro de auditoria (Ledger) ---"
+if [ -f "/mnt/data/chrono_ledger.log" ]; then
+    ENTRIES=$(wc -l < "/mnt/data/chrono_ledger.log" 2>/dev/null || echo 0)
+    if [ -x "./bin/chrono-ledger" ]; then
+        if ./bin/chrono-ledger verify > /tmp/doctor_ledger.log 2>&1; then
+            ok "Cadena de auditoria integra ($ENTRIES entradas)"
+        else
+            bad "Cadena de auditoria COMPROMETIDA - revisar de inmediato"
+            cat /tmp/doctor_ledger.log | sed 's/^/         /'
+        fi
+    fi
+else
+    warn "Ledger aun no inicializado (sin eventos registrados todavia)"
+fi
+
+echo ""
+echo "--- 5. Almacenamiento persistente ---"
+if mountpoint -q /mnt/data 2>/dev/null || [ -d "/mnt/data" ]; then
+    if [ -w "/mnt/data" ]; then
+        ok "/mnt/data accesible y escribible"
+    else
+        warn "/mnt/data existe pero no es escribible"
+    fi
+else
+    warn "/mnt/data no montado (normal si no estas dentro del OS arrancado)"
+fi
+
+echo ""
+echo "--- 6. Espacio en disco ---"
+AVAIL_KB=$(df -k "$HOME" 2>/dev/null | awk 'NR==2 {print $4}')
+if [ -n "$AVAIL_KB" ]; then
+    AVAIL_MB=$((AVAIL_KB / 1024))
+    if [ "$AVAIL_MB" -lt 500 ]; then
+        bad "Espacio libre CRITICO: ${AVAIL_MB}MB (riesgo de corrupcion en builds)"
+    elif [ "$AVAIL_MB" -lt 2000 ]; then
+        warn "Espacio libre bajo: ${AVAIL_MB}MB"
+    else
+        ok "Espacio libre suficiente: ${AVAIL_MB}MB"
+    fi
+fi
+
+echo ""
+echo "--- 7. Hardware ---"
+if [ -x "./bin/chrono-hardware-guard" ]; then
+    ./bin/chrono-hardware-guard > /tmp/doctor_hw.log 2>&1
+    QUARANTINE_COUNT=0
+    [ -f "./security/auth/quarantine.log" ] && QUARANTINE_COUNT=$(wc -l < "./security/auth/quarantine.log" 2>/dev/null || echo 0)
+    if [ "$QUARANTINE_COUNT" -gt 0 ]; then
+        warn "$QUARANTINE_COUNT dispositivo(s) en cuarentena sin aprobar"
+    else
+        ok "Sin dispositivos en cuarentena"
+    fi
+fi
+
+echo ""
+echo "=============================================="
+echo " RESUMEN: $PASS OK / $WARN advertencias / $FAIL fallas"
+echo "=============================================="
+
+if [ "$FAIL" -gt 0 ]; then
+    echo " ESTADO GENERAL: CRITICO - revisar fallas antes de operar"
+    exit 2
+elif [ "$WARN" -gt 0 ]; then
+    echo " ESTADO GENERAL: OPERATIVO CON ADVERTENCIAS"
+    exit 1
+else
+    echo " ESTADO GENERAL: SALUDABLE"
+    exit 0
+fi
