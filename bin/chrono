@@ -1,0 +1,111 @@
+#!/bin/sh
+# ChronoOS - Comando unificado
+# Punto de entrada unico para toda la suite ChronoOS. En vez de recordar
+# 12 binarios sueltos, todo se accede como: chrono <categoria> <accion>
+
+VERSION="1.0.0-alpha"
+BINDIR="$(dirname "$0")"
+
+show_help() {
+    cat << HELP
+ChronoOS CLI v${VERSION} - Chrono Shield Networks
+
+Uso: chrono <categoria> <accion> [argumentos]
+
+SEGURIDAD
+  chrono panic                          Activa el protocolo de panico
+  chrono status                         Estado general del sistema
+
+INTEGRIDAD Y AUDITORIA
+  chrono forge <dir> [output]           Crea bundle firmado (Merkle+Ed25519)
+  chrono verify <dir> <bundle>          Verifica un bundle contra el estado actual
+  chrono attest gen                     Genera atestacion de arranque
+  chrono attest verify                  Verifica integridad del kernel+initramfs
+  chrono ledger log <tipo> <detalle>    Registra evento en el libro de auditoria
+  chrono ledger check                   Verifica la cadena de auditoria completa
+
+HARDWARE
+  chrono hw scan                        Escanea USB/serial/almacenamiento
+  chrono power watch                    Monitor de energia en segundo plano
+
+IMPRESION 3D
+  chrono print <ip> <gcode> <bundle> <operador>   Envia trabajo verificado
+
+CIFRADO
+  chrono crypto encrypt <in> <out> <keyfile>
+  chrono crypto decrypt <in> <out> <keyfile>
+
+  chrono help                           Muestra esta ayuda
+  chrono version                        Muestra la version
+HELP
+}
+
+case "$1" in
+    panic)
+        "/chrono-ledger" append "CLI_ACTION" "panic invocado via chrono CLI" 2>/dev/null
+        exec "$BINDIR/chrono-panic"
+        ;;
+    status)
+        echo "=== ChronoOS Status v${VERSION} ==="
+        "$BINDIR/chrono-core" status 2>/dev/null
+        echo ""
+        echo "--- Ultimas entradas del ledger ---"
+        tail -n 5 /mnt/data/chrono_ledger.log 2>/dev/null || echo "(ledger vacio o no inicializado)"
+        ;;
+    forge)
+        shift
+        exec "$BINDIR/chrono-pin-forge" "$@"
+        ;;
+    verify)
+        shift
+        exec "$BINDIR/chrono-pin-verify" "$@"
+        ;;
+    attest)
+        case "$2" in
+            gen) exec "$BINDIR/chrono-attest-gen" ;;
+            verify) exec "$BINDIR/chrono-attest-verify" ;;
+            *) echo "Uso: chrono attest [gen|verify]"; exit 1 ;;
+        esac
+        ;;
+    ledger)
+        case "$2" in
+            log) shift 2; exec "$BINDIR/chrono-ledger" append "$@" ;;
+            check) exec "$BINDIR/chrono-ledger" verify ;;
+            *) echo "Uso: chrono ledger [log <tipo> <detalle>|check]"; exit 1 ;;
+        esac
+        ;;
+    hw)
+        case "$2" in
+            scan) exec "$BINDIR/chrono-hardware-guard" ;;
+            *) echo "Uso: chrono hw scan"; exit 1 ;;
+        esac
+        ;;
+    power)
+        case "$2" in
+            watch) exec "$BINDIR/chrono-power-shield" ;;
+            *) echo "Uso: chrono power watch"; exit 1 ;;
+        esac
+        ;;
+    print)
+        shift
+        exec "$BINDIR/chrono-print-guard" "$@"
+        ;;
+    crypto)
+        case "$2" in
+            encrypt) shift 2; exec "$BINDIR/chrono-core" encrypt "$@" ;;
+            decrypt) shift 2; exec "$BINDIR/chrono-core" decrypt "$@" ;;
+            *) echo "Uso: chrono crypto [encrypt|decrypt] <in> <out> <keyfile>"; exit 1 ;;
+        esac
+        ;;
+    version)
+        echo "ChronoOS CLI v${VERSION}"
+        ;;
+    help|"")
+        show_help
+        ;;
+    *)
+        echo "[!] Comando desconocido: $1"
+        echo "Usa 'chrono help' para ver los comandos disponibles."
+        exit 1
+        ;;
+esac
