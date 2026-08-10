@@ -97,6 +97,14 @@ case "$1" in
             *) echo "Uso: chrono crypto [encrypt|decrypt] <in> <out> <keyfile>"; exit 1 ;;
         esac
         ;;
+    visitante)
+        shift
+        exec "$BINDIR/chrono-visitor-access" "$@"
+        ;;
+    lpr)
+        shift
+        exec "$BINDIR/chrono-lpr" "$@"
+        ;;
     conjunto)
         shift
         exec "$BINDIR/chrono-community-alert" "$@"
