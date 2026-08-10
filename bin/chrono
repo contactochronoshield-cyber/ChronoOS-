@@ -101,6 +101,10 @@ case "$1" in
         shift
         exec "$BINDIR/chrono-visitor-access" "$@"
         ;;
+    audit)
+        shift
+        exec "$BINDIR/chrono-network-audit" "$@"
+        ;;
     lpr)
         shift
         exec "$BINDIR/chrono-lpr" "$@"
