@@ -1,10 +1,10 @@
-CC=gcc
+CC = gcc
 
-CFLAGS=-Wall -Iinclude
+CFLAGS = -Wall -Wextra -Iinclude
 
-SRC=src/main.c
+TARGET = chrono-init
 
-TARGET=chrono-init
+SRC = src/main.c src/logger.c
 
 all:
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
