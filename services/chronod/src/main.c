@@ -1,33 +1,59 @@
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
+#include <time.h>
 
-volatile int running = 1;
+static volatile sig_atomic_t running = 1;
 
-void stop(int sig)
+static void handle_signal(int sig)
 {
+    (void)sig;
     running = 0;
 }
 
-int main()
+static void timestamp(void)
 {
-    signal(SIGINT, stop);
-    signal(SIGTERM, stop);
+    time_t now = time(NULL);
+    struct tm tm_now;
 
-    printf("=========================================\n");
-    printf("        ChronoD Service Manager\n");
-    printf("          Version 1.0.0-alpha\n");
-    printf("=========================================\n");
+    localtime_r(&now, &tm_now);
 
-    printf("[ChronoD] Inicializando...\n");
-    printf("[ChronoD] Servicios iniciados.\n");
+    printf("[%02d:%02d:%02d] ",
+           tm_now.tm_hour,
+           tm_now.tm_min,
+           tm_now.tm_sec);
+}
 
-    while(running)
-    {
+int main(void)
+{
+    struct sigaction sa;
+
+    sa.sa_handler = handle_signal;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGINT,  &sa, NULL);
+    sigaction(SIGHUP,  &sa, NULL);
+
+    timestamp();
+    printf("[ChronoD] Initializing...\n");
+
+    timestamp();
+    printf("[ChronoD] Service manager started.\n");
+
+    fflush(stdout);
+
+    while (running) {
         sleep(1);
     }
 
-    printf("[ChronoD] Cerrando servicios...\n");
+    timestamp();
+    printf("[ChronoD] Shutdown requested.\n");
+
+    timestamp();
+    printf("[ChronoD] Service manager stopped.\n");
 
     return 0;
 }

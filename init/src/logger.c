@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 
-#define LOG_FILE "../../var/logs/chrono.log"
+#define LOG_FILE "var/logs/chrono.log"
 
 void chrono_log(
     const char *level,
@@ -19,9 +19,13 @@ void chrono_log(
         return;
 
     time_t now = time(NULL);
+
     struct tm tm_now;
 
-    localtime_r(&now, &tm_now);
+    localtime_r(
+        &now,
+        &tm_now
+    );
 
     char timestamp[32];
 
