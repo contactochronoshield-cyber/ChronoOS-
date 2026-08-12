@@ -12,3 +12,5 @@ build/
 boot/*.img
 boot/vmlinuz*
 security/auth/mobile/*
+var/
+vault/
