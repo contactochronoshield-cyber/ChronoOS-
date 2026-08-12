@@ -60,4 +60,6 @@ else
     echo "[X] SISTEMA NEUTRALIZADO - PURGA COMPLETA VERIFICADA"
 fi
 
+echo "[*] Deteniendo nucleo 5G privado si esta activo..."
+./bin/chrono-5g-manager panic-shutdown 2>/dev/null
 reboot -f 2>/dev/null || poweroff -f 2>/dev/null || echo "[i] Sin permisos para apagar (normal en Termux sin root)"
