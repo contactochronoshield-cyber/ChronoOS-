@@ -1,16 +1,32 @@
-security/auth/*.key
-security/auth/*.pem
-security/auth/*.pub
-crypto_keys/*
-*.key
+# Compiled binaries
+*.o
+*.a
+*.so
+
+# Local build artifacts
+/build/
+*.img.tmp
+
+# Test binaries
+init/test-registry
+init/test-service-config
+
+# Backups
+*.backup
+*.before_logger_fix
+*.bak
+
+# Runtime logs
+var/logs/*.log
+var/logs/*.csv
+
+# Private keys and secrets
 *.pem
-!build_root/rootfs/etc/ssl/*.pem
-bin/*
-!bin/chrono
-!bin/chrono-*
-build/
-boot/*.img
-boot/vmlinuz*
-security/auth/mobile/*
-var/
-vault/
+*.key
+*.pub
+
+# Local security/auth material
+security/auth/*
+
+# Termux/editor temporary files
+*~
