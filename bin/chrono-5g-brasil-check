@@ -1,0 +1,30 @@
+#!/bin/sh
+# ChronoOS - Brasil Regulatory Checklist
+# Muestra los requisitos ANATEL antes de cualquier despliegue en Brasil.
+# Esto NO es asesoria legal - es un recordatorio estructurado para que
+# nadie del equipo lo pase por alto en el entusiasmo de una venta.
+
+PROFILE="./network/5g-core/profiles/brasil_anatel.conf"
+
+if [ ! -f "$PROFILE" ]; then
+    echo "[!] Perfil de Brasil no encontrado."
+    exit 1
+fi
+
+echo "=============================================="
+echo " CHRONOOS 5G - CHECKLIST REGULATORIO BRASIL"
+echo "=============================================="
+cat "$PROFILE"
+echo ""
+echo "=============================================="
+echo " ANTES DE VENDER O DESPLEGAR EN BRASIL:"
+echo "=============================================="
+echo " [ ] Confirmar homologacao ANATEL del hardware de radio"
+echo " [ ] Verificar disponibilidad de la banda en la localidad exacta"
+echo " [ ] Confirmar tarifa actual (la de este perfil es referencia,"
+echo "     puede haber cambiado)"
+echo " [ ] Altura de antena outdoor <= 6 metros"
+echo " [ ] Consultar OCD (Organismo de Certificacao Designado) real"
+echo " [ ] Esto es investigacion de apoyo, NO asesoria legal formal -"
+echo "     confirmar con abogado/consultor especializado en Brasil"
+echo "=============================================="
