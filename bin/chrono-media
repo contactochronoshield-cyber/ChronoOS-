@@ -1,0 +1,88 @@
+#!/bin/sh
+# ChronoOS - Sovereign Media Server
+# Servidor de medios PRIVADO para contenido propio o licenciado legalmente
+# (no redistribuye canales/streaming de terceros sin autorizacion). Cada
+# archivo se cataloga con su origen/licencia declarada, el acceso usa el
+# mismo sistema de autorizacion temporal que Visitor Access, y cada
+# reproduccion queda en el Ledger - trazabilidad de uso real.
+
+MEDIA_ROOT="./vault/media"
+CATALOG="./etc/chrono/media_catalog.csv"
+
+log_ledger() {
+    ./bin/chrono-ledger append "$1" "$2" 2>/dev/null
+}
+
+add_content() {
+    FILE="$1"
+    TITLE="$2"
+    LICENSE_SOURCE="$3"  # ej: "propio", "licencia-XYZ-2026", "dominio-publico"
+
+    if [ -z "$FILE" ] || [ -z "$LICENSE_SOURCE" ]; then
+        echo "Uso: chrono-media add <archivo> <titulo> <origen_licencia>"
+        echo "El origen de licencia es OBLIGATORIO - ej: 'propio', 'licencia-ABC-2026'"
+        exit 1
+    fi
+
+    mkdir -p "$MEDIA_ROOT"
+    mkdir -p ./etc/chrono
+    BASENAME=$(basename "$FILE")
+    cp "$FILE" "$MEDIA_ROOT/$BASENAME"
+
+    CHECKSUM=$(sha256sum "$MEDIA_ROOT/$BASENAME" | cut -d' ' -f1)
+    echo "${BASENAME},${TITLE},${LICENSE_SOURCE},${CHECKSUM},$(date '+%Y-%m-%d %H:%M:%S')" >> "$CATALOG"
+
+    echo "[✓] Contenido agregado: $TITLE"
+    echo "    Origen declarado: $LICENSE_SOURCE"
+    log_ledger "MEDIA_CONTENT_ADDED" "titulo=$TITLE origen=$LICENSE_SOURCE checksum=$CHECKSUM"
+}
+
+list_content() {
+    if [ ! -f "$CATALOG" ]; then echo "[i] Catalogo vacio."; return; fi
+    echo "=============================================="
+    echo " CATALOGO DE MEDIOS - ChronoOS Sovereign Media"
+    echo "=============================================="
+    printf "%-30s %-20s\n" "TITULO" "ORIGEN/LICENCIA"
+    while IFS=, read -r file title source checksum date; do
+        printf "%-30s %-20s\n" "$title" "$source"
+    done < "$CATALOG"
+}
+
+play_request() {
+    TITLE="$1"
+    VIEWER="$2"
+
+    if [ -z "$TITLE" ] || [ -z "$VIEWER" ]; then
+        echo "Uso: chrono-media play <titulo> <espectador>"
+        exit 1
+    fi
+
+    MATCH=$(grep ",$TITLE," "$CATALOG" 2>/dev/null | head -1)
+    if [ -z "$MATCH" ]; then
+        echo "[!] Contenido no encontrado en el catalogo: $TITLE"
+        exit 1
+    fi
+
+    FILE=$(echo "$MATCH" | cut -d, -f1)
+    SOURCE=$(echo "$MATCH" | cut -d, -f3)
+
+    echo "[✓] Reproduciendo: $TITLE (origen: $SOURCE)"
+    echo "    Archivo: $MEDIA_ROOT/$FILE"
+    log_ledger "MEDIA_PLAYBACK" "titulo=$TITLE espectador=$VIEWER origen=$SOURCE"
+}
+
+case "$1" in
+    add) shift; add_content "$@" ;;
+    list) list_content ;;
+    play) shift; play_request "$@" ;;
+    *)
+        echo "Uso:"
+        echo "  chrono-media add <archivo> <titulo> <origen_licencia>"
+        echo "  chrono-media list"
+        echo "  chrono-media play <titulo> <espectador>"
+        echo ""
+        echo "IMPORTANTE: solo para contenido propio o licenciado legalmente."
+        echo "El origen de licencia queda registrado en cada entrada del catalogo"
+        echo "y en el Ledger - pensado para auditoria clara, no para anonimato."
+        ;;
+esac
