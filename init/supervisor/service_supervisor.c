@@ -281,6 +281,20 @@ int supervisor_handle_failures(
                 service->config.name
             );
 
+            /*
+             * Disable further restart attempts for this
+             * failed service. The service remains FAILED.
+             */
+            strncpy(
+                service->config.restart_policy,
+                "none",
+                sizeof(service->config.restart_policy) - 1
+            );
+
+            service->config.restart_policy[
+                sizeof(service->config.restart_policy) - 1
+            ] = '\0';
+
             continue;
         }
 
