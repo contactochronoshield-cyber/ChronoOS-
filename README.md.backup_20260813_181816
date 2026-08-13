@@ -22,7 +22,7 @@ including:
 
 - System architecture research
 - Core and userspace development
-- Boot and initialization
+- Boot and initialization experiments
 - Network infrastructure
 - Security components
 - Service management
@@ -36,27 +36,17 @@ ChronoOS architecture.
 
 # Current Version
 
-**ChronoOS 1.1.0 Stable**
+**ChronoOS 1.0.0-alpha**
 
-This release consolidates the current ChronoOS architecture into a
-stable platform for dedicated infrastructure.
+This release establishes the foundation of the current system
+architecture.
 
-ChronoOS 1.1.0 includes:
+The project is now moving toward the next development generation:
 
-- Service supervision architecture
-- Process monitoring
-- Restart policies
-- Service registry integration
-- Forensic death-memory capabilities
-- Anomaly pattern detection
-- Sovereign hardware identity
-- Hardware integrity monitoring
-- Signed destruction attestation
-- Network infrastructure components
-- Security and recovery components
-- Dedicated infrastructure tooling
+**ChronoOS 1.1.x**
 
-The 1.1.0 release represents the current stable ChronoOS platform.
+The 1.1 development cycle focuses on turning the current foundation
+into a more complete bootable and testable operating environment.
 
 ---
 
@@ -98,7 +88,7 @@ ChronoOS prioritizes:
                 │                       │
              Boot                    Runtime
                 │                       │
-          chrono-init          Chrono Service Supervisor
+          chrono-init               ChronoD
                 │                       │
                 └───────────┬───────────┘
                             │
@@ -110,9 +100,9 @@ ChronoOS prioritizes:
    Memory                 Firewall            Vault
    IPC                    Routing             Audit
    Process                VPN                 Recovery
-   Syscall                DNS                 Attestation
-   Power                  Mesh                Hardware Identity
-                          Discovery           Forensic Monitoring
+   Syscall                DNS
+   Power                  Mesh
+                          Discovery
                             │
                 ┌───────────┴───────────┐
                 │                       │
