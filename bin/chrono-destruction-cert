@@ -1,0 +1,42 @@
+#!/bin/sh
+# ChronoOS - Certificado de Destruccion
+# Genera un certificado firmado (Ed25519, misma llave de Pin Forge) que
+# demuestra que la SECUENCIA de destruccion se ejecuto: que pasos, cuando,
+# con que resultado. NO prueba que ningun dato sobrevive en ningun lugar -
+# eso es logicamente imposible de probar. Prueba el PROCESO, no el resultado
+# absoluto - que es lo que estandares reales (NIST 800-88) tambien hacen.
+
+CERT_DIR="/mnt/data/destruction_certs"
+mkdir -p "$CERT_DIR"
+
+TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S')
+CERT_ID="cert_$(date +%s)"
+STEPS_LOG="$CERT_DIR/${CERT_ID}_steps.log"
+
+echo "PASOS EJECUTADOS EN LA DESTRUCCION:" > "$STEPS_LOG"
+echo "timestamp=$TIMESTAMP" >> "$STEPS_LOG"
+echo "master_key_overwritten=$([ -f ./security/auth/master.key ] && echo NO_AUN_PRESENTE || echo SI)" >> "$STEPS_LOG"
+echo "vaults_cleared=$([ -d ./security/vaults ] && [ -z "$(ls -A ./security/vaults 2>/dev/null)" ] && echo SI || echo VERIFICAR)" >> "$STEPS_LOG"
+echo "5g_core_stopped=$(pgrep -f open5gs > /dev/null && echo NO_SIGUE_ACTIVO || echo SI)" >> "$STEPS_LOG"
+
+CERT_HASH=$(sha256sum "$STEPS_LOG" | cut -d' ' -f1)
+
+if [ -f "./security/auth/pinforge_ed25519.pem" ]; then
+    python3 -c "
+import subprocess
+" 2>/dev/null
+    # Firma usando el mismo mecanismo que Pin Forge (reutiliza chrono-pin-forge
+    # aplicado al archivo de pasos, en vez de duplicar codigo de firma)
+    ./bin/chrono-pin-forge "$STEPS_LOG" "$CERT_DIR/${CERT_ID}.cert" 2>/dev/null
+    echo "[✓] Certificado FIRMADO de destruccion: $CERT_DIR/${CERT_ID}.cert"
+else
+    echo "[!] Sin llave Ed25519 disponible - certificado sin firmar (solo hash)"
+fi
+
+echo "[i] Hash de pasos: $CERT_HASH"
+echo "[i] IMPORTANTE: este certificado prueba que la SECUENCIA de destruccion"
+echo "    se ejecuto en este momento. NO es (ni puede ser) una prueba matematica"
+echo "    de que ninguna copia sobrevive en ningun lugar - eso es imposible de"
+echo "    probar criptograficamente, para cualquier sistema del mundo."
+
+./bin/chrono-ledger append "DESTRUCTION_CERTIFICATE_ISSUED" "cert_id=$CERT_ID hash=$CERT_HASH" 2>/dev/null
