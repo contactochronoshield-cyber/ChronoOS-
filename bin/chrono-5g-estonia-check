@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PROFILE="$ROOT/profiles/5g/estonia/profile.conf"
+
+echo "============================================================"
+echo " CHRONOOS 5G — ESTONIA"
+echo "============================================================"
+
+if [ ! -f "$PROFILE" ]; then
+    echo "[ERROR] Perfil no encontrado:"
+    echo "$PROFILE"
+    exit 1
+fi
+
+cat "$PROFILE"
+
+echo
+echo "[OK] Perfil 5G disponible."
+echo "[INFO] Este comando valida configuración local."
+echo "[INFO] La autorización de espectro depende del regulador."

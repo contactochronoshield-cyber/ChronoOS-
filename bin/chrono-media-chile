@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MEDIA="$ROOT/profiles/iptv/chile"
+
+echo "============================================================"
+echo " CHRONOOS MEDIA — CHILE"
+echo "============================================================"
+
+echo
+echo "Catálogo:"
+cat "$MEDIA/catalog.json"
+
+echo
+echo "Licencias:"
+cat "$MEDIA/licenses.json"
+
+echo
+echo "Orígenes:"
+cat "$MEDIA/origins.json"
+
+echo
+echo "[OK] Perfil Media disponible."
+echo "[POLICY] Solo contenido autorizado/licenciado."
