@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MODULE="$ROOT/modules/chrononet-gis"
+
+case "${1:-status}" in
+
+    import)
+        python3 \
+            "$MODULE/scripts/import_colombia.py"
+        ;;
+
+    map)
+        cd "$MODULE/web"
+
+        echo "============================================================"
+        echo " CHRONONET GIS"
+        echo "============================================================"
+        echo "Mapa: http://127.0.0.1:8788"
+        echo ""
+
+        python3 server.py
+        ;;
+
+    api)
+        python3 \
+            "$MODULE/api/server.py"
+        ;;
+
+    status)
+
+        echo "============================================================"
+        echo " CHRONONET GIS STATUS"
+        echo "============================================================"
+
+        echo
+        echo "Module:"
+        echo "$MODULE"
+
+        echo
+        echo "Dataset:"
+        if [ -s \
+            "$MODULE/data/raw/colombia_mobile_infrastructure.csv"
+        ]; then
+            echo "[OK] Colombia dataset disponible"
+        else
+            echo "[WARN] Colombia dataset no disponible"
+        fi
+
+        echo
+        echo "Database:"
+        if [ -f \
+            "$MODULE/data/processed/chrononet_colombia.db"
+        ]; then
+            echo "[OK] SQLite disponible"
+        else
+            echo "[WARN] SQLite pendiente"
+        fi
+
+        echo
+        echo "GeoJSON:"
+        if [ -f \
+            "$MODULE/data/processed/colombia_infrastructure.geojson"
+        ]; then
+            echo "[OK] GeoJSON disponible"
+        else
+            echo "[WARN] GeoJSON pendiente"
+        fi
+
+        ;;
+
+    *)
+        echo "ChronoNet GIS"
+        echo
+        echo "Uso:"
+        echo "  chrono-netmap status"
+        echo "  chrono-netmap import"
+        echo "  chrono-netmap map"
+        echo "  chrono-netmap api"
+        exit 1
+        ;;
+
+esac
