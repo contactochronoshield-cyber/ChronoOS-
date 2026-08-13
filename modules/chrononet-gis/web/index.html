@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>ChronoNet GIS</title>
+
+<link
+ rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+
+html, body {
+    margin: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+#map {
+    height: 100%;
+}
+
+.panel {
+    position: absolute;
+    z-index: 1000;
+    top: 15px;
+    left: 15px;
+    width: 300px;
+    background: rgba(0,0,0,.88);
+    color: white;
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0,0,0,.35);
+}
+
+.panel h1 {
+    margin: 0 0 5px 0;
+    font-size: 22px;
+}
+
+.panel p {
+    margin: 5px 0;
+    opacity: .85;
+}
+
+.stat {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(255,255,255,.08);
+    border-radius: 6px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+
+<h1>ChronoNet GIS</h1>
+
+<p>Telecom Infrastructure Intelligence</p>
+
+<p><strong>Colombia</strong></p>
+
+<div class="stat" id="stats">
+Cargando infraestructura...
+</div>
+
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const map = L.map("map").setView([4.5709, -74.2973], 6);
+
+L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+    }
+).addTo(map);
+
+fetch("/api/geojson")
+.then(r => r.json())
+.then(data => {
+
+    const layer = L.geoJSON(data, {
+
+        pointToLayer: function(feature, latlng) {
+
+            return L.circleMarker(
+                latlng,
+                {
+                    radius: 5,
+                    fillOpacity: .75
+                }
+            );
+        },
+
+        onEachFeature: function(feature, layer) {
+
+            const p = feature.properties || {};
+
+            layer.bindPopup(`
+                <strong>ChronoNet</strong><br>
+                Operador: ${p.operator || "N/D"}<br>
+                Municipio: ${p.municipality || "N/D"}<br>
+                Tecnología: ${p.technology || "N/D"}<br>
+                Fuente: ${p.source || "N/D"}
+            `);
+        }
+
+    }).addTo(map);
+
+    if (layer.getBounds().isValid()) {
+        map.fitBounds(layer.getBounds());
+    }
+
+})
+.catch(err => {
+
+    document.getElementById("stats").innerText =
+        "No hay dataset geográfico disponible.";
+
+});
+
+fetch("/api/stats")
+.then(r => r.json())
+.then(data => {
+
+    document.getElementById("stats").innerHTML = `
+        Registros: <strong>${data.total_records ?? 0}</strong><br>
+        Municipios: <strong>${data.municipalities ?? 0}</strong><br>
+        Operadores: <strong>${data.operators ?? 0}</strong><br>
+        Tecnologías: <strong>${data.technologies ?? 0}</strong>
+    `;
+
+});
+
+</script>
+
+</body>
+</html>
