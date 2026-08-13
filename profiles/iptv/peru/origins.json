@@ -1,0 +1,11 @@
+{
+  "origins": [],
+  "required_fields": [
+    "content_id",
+    "source",
+    "provider",
+    "authorization",
+    "territory",
+    "timestamp"
+  ]
+}

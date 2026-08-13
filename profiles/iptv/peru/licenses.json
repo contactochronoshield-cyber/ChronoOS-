@@ -1,0 +1,12 @@
+{
+  "licenses": [],
+  "required_fields": [
+    "content_id",
+    "provider",
+    "license_type",
+    "territory",
+    "valid_from",
+    "valid_until",
+    "proof_reference"
+  ]
+}

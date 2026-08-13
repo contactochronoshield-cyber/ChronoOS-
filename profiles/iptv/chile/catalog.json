@@ -1,0 +1,11 @@
+{
+  "platform": "ChronoOS Media",
+  "country": "chile",
+  "channels": [],
+  "content_policy": {
+    "licensed_content_only": true,
+    "source_required": true,
+    "license_required": true,
+    "origin_traceability_required": true
+  }
+}
