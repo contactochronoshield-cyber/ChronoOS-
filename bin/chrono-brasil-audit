@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BR="$ROOT/profiles/brazil"
+
+OK=0
+WARN=0
+
+check_file() {
+    local name="$1"
+    local file="$2"
+
+    if [ -f "$file" ]; then
+        printf "[OK]   %-28s\n" "$name"
+        OK=$((OK+1))
+    else
+        printf "[MISS] %-28s\n" "$name"
+        WARN=$((WARN+1))
+    fi
+}
+
+check_dir() {
+    local name="$1"
+    local dir="$2"
+
+    if [ -d "$dir" ]; then
+        printf "[OK]   %-28s\n" "$name"
+        OK=$((OK+1))
+    else
+        printf "[MISS] %-28s\n" "$name"
+        WARN=$((WARN+1))
+    fi
+}
+
+echo "============================================================"
+echo "       CHRONONET BRAZIL — ADVANCED AUDIT"
+echo "============================================================"
+
+echo
+echo "IDENTITY"
+check_file "Profile" "$BR/PROFILE.md"
+
+echo
+echo "REGULATORY"
+check_file "ANATEL" "$BR/regulatory/anatel/README.md"
+check_file "Licensing" "$BR/regulatory/licensing/README.md"
+check_file "Homologation" "$BR/regulatory/homologation/README.md"
+check_file "Private Networks" "$BR/regulatory/private-networks/README.md"
+
+echo
+echo "SPECTRUM / 5G"
+check_file "Spectrum profile" "$BR/spectrum/README.md"
+check_file "5G profile" "$BR/5g/README.md"
+check_file "5G bands" "$BR/5g/bands.conf"
+
+echo
+echo "INFRASTRUCTURE"
+check_file "Infrastructure" "$BR/infrastructure/README.md"
+check_file "Stations" "$BR/infrastructure/stations/README.md"
+check_file "Coverage" "$BR/infrastructure/coverage/README.md"
+check_file "Operators" "$BR/infrastructure/operators/README.md"
+
+echo
+echo "GIS"
+check_file "GIS profile" "$BR/gis/README.md"
+
+echo
+echo "CHRONO SHIELD"
+check_file "Own infrastructure" "$BR/chronoshield/README.md"
+
+echo
+echo "MEDIA / IPTV"
+check_file "Media profile" "$BR/media/README.md"
+check_file "Catalog schema" "$BR/media/catalog/SCHEMA.md"
+check_file "Licensing" "$BR/media/licensing/README.md"
+check_file "Origins" "$BR/media/origins/README.md"
+
+echo
+echo "============================================================"
+echo "RESULT"
+echo "============================================================"
+echo "Validated: $OK"
+echo "Missing:   $WARN"
+
+if [ "$WARN" -eq 0 ]; then
+    echo
+    echo "BRAZIL PROFILE: COMPLETE"
+    exit 0
+else
+    echo
+    echo "BRAZIL PROFILE: STRUCTURE INCOMPLETE"
+    exit 1
+fi
