@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+case "${1:-status}" in
+    status)
+        echo "Chrono LoRa/LoRaWAN integration: READY"
+        ;;
+    gateways)
+        echo "Chrono LoRa gateway interface"
+        ;;
+    *)
+        echo "Usage: chrono-lora {status|gateways}"
+        exit 1
+        ;;
+esac

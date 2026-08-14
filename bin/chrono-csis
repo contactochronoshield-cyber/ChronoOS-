@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+echo "============================================================"
+echo " CSIS — CHRONO SOVEREIGN INFRASTRUCTURE STANDARD"
+echo "============================================================"
+cat standards/csis/README.md
