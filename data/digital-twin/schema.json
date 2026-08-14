@@ -1,0 +1,29 @@
+{
+  "schema": "chrono.digital-twin",
+  "version": "1.0",
+  "identity": {
+    "twin_id": "string",
+    "site_id": "string"
+  },
+  "location": {
+    "country": "string",
+    "region": "string|null",
+    "municipality": "string|null",
+    "latitude": "number",
+    "longitude": "number"
+  },
+  "infrastructure": {
+    "asset_type": "string",
+    "operator": "string|null",
+    "technologies": "array"
+  },
+  "chrono": {
+    "owned": "boolean",
+    "managed": "boolean",
+    "devices": "array"
+  },
+  "telemetry": {},
+  "security": {},
+  "lifecycle": {},
+  "provenance": {}
+}

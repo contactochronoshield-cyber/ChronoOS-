@@ -1,0 +1,11 @@
+{
+  "schema": "chrono.gis.provenance",
+  "country": "CO",
+  "authority": "CRC / Postdata",
+  "dataset": "Sitios de infraestructura móvil",
+  "source": "https://www.postdata.gov.co/mapa/sitios-de-infraestructura-movil",
+  "retrieved_at": "2026-08-14T04:13:01.806741+00:00",
+  "sha256": "969f2cb59199870a6b3e21773b5310604955f14229e19e637039c453c7b69b7b",
+  "synthetic": false,
+  "demo": false
+}
