@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+case "${1:-status}" in
+    status)
+        echo "Chrono Edge: ONLINE"
+        ;;
+    identity)
+        echo "Chrono Edge Identity subsystem"
+        ;;
+    fleet)
+        echo "Chrono Edge Fleet subsystem"
+        ;;
+    *)
+        echo "Usage: chrono-edge {status|identity|fleet}"
+        exit 1
+        ;;
+esac

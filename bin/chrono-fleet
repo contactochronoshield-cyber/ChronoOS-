@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+case "${1:-status}" in
+    list)
+        echo "Chrono Fleet"
+        ;;
+    status)
+        echo "Chrono Fleet status"
+        ;;
+    *)
+        echo "Usage: chrono-fleet {list|status}"
+        exit 1
+        ;;
+esac

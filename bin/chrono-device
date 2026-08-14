@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+case "${1:-status}" in
+    register)
+        echo "Chrono device registration interface"
+        ;;
+    status)
+        echo "Chrono device status interface"
+        ;;
+    *)
+        echo "Usage: chrono-device {register|status}"
+        exit 1
+        ;;
+esac
