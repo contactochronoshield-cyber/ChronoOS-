@@ -1,0 +1,12 @@
+{
+  "schema": "chrono.data.provenance",
+  "country": "CO",
+  "authority": "CRC / Postdata",
+  "dataset": "Infraestructura de redes de acceso móvil",
+  "source_url": "https://www.postdata.gov.co/resource/infraestructura-de-redes-de-acceso-movil",
+  "retrieved_at": "2026-08-14T03:59:17.461185+00:00",
+  "sha256": "e3c4c9360ea32f129e6bf2f1ee3275d25766f382c7ff70f703b1da6294094046",
+  "status": "official-source-retrieved",
+  "synthetic": false,
+  "demo": false
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chrono Infrastructure Intelligence</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b0f14;
+    color: #e8edf2;
+}
+
+header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #27313b;
+}
+
+h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+main {
+    padding: 24px;
+}
+
+.panel {
+    border: 1px solid #27313b;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.site {
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #27313b;
+    border-radius: 7px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border: 1px solid #53606d;
+    border-radius: 5px;
+    margin-right: 5px;
+    font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Chrono Infrastructure Intelligence</h1>
+<div>ChronoOS 1.2.0 — GIS / Digital Twin</div>
+</header>
+
+<main>
+
+<div class="panel">
+<h2>Regional Infrastructure</h2>
+
+<div class="badge">🇨🇴 Colombia</div>
+<div class="badge">🇧🇷 Brazil</div>
+<div class="badge">5G</div>
+<div class="badge">LoRa</div>
+<div class="badge">Fiber</div>
+<div class="badge">Edge</div>
+</div>
+
+<div class="panel">
+
+<h2>Infrastructure Records</h2>
+
+<div id="sites">Loading...</div>
+
+</div>
+
+<div class="panel">
+
+<h2>Architecture</h2>
+
+<pre>
+Infrastructure
+      |
+      v
+ Chrono GIS
+      |
+      v
+Digital Twin
+      |
+      v
+ ChronoNet
+      |
+      v
+ Sentinel IA
+</pre>
+
+</div>
+
+</main>
+
+<script>
+
+async function loadCountry(country, label) {
+
+    const response =
+        await fetch("../data/" + country);
+
+    return response.json();
+}
+
+async function load() {
+
+    const output =
+        document.getElementById("sites");
+
+    const datasets = [
+        ["../../data/normalized/colombia/sites.json", "Colombia"],
+        ["../../data/normalized/brasil/sites.json", "Brasil"]
+    ];
+
+    let html = "";
+
+    for (const [url, country] of datasets) {
+
+        try {
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            for (const site of data.records) {
+
+                html += `
+                <div class="site">
+
+                    <strong>${site.site_id}</strong>
+
+                    <br>
+
+                    ${country} —
+                    ${site.region || "N/A"} —
+                    ${site.municipality || "N/A"}
+
+                    <br>
+
+                    ${site.asset_type}
+
+                    <br>
+
+                    ${site.technologies.join(", ")}
+
+                    <br>
+
+                    Coordinates:
+                    ${site.latitude},
+                    ${site.longitude}
+
+                    <br>
+
+                    Source:
+                    ${site.source}
+
+                </div>
+                `;
+
+            }
+
+        } catch (error) {
+
+            html += `
+            <div class="site">
+            ${country}: dataset unavailable
+            </div>
+            `;
+
+        }
+
+    }
+
+    output.innerHTML = html || "No infrastructure records.";
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>

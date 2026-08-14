@@ -1,0 +1,18 @@
+FUENTE OFICIAL
+==============
+CRC / Postdata
+
+Dataset:
+Infraestructura de redes de acceso móvil
+
+URL:
+https://www.postdata.gov.co/resource/infraestructura-de-redes-de-acceso-movil
+
+Periodo:
+2021-2T a 2026-1T
+
+Estado:
+2026-1T preliminar y sujeto a revisión.
+
+Fuente:
+Comisión de Regulación de Comunicaciones de Colombia.
