@@ -1,0 +1,29 @@
+{
+  "schema": "chrono.infrastructure.asset",
+  "version": "1.0",
+  "required": [
+    "site_id",
+    "country",
+    "asset_type",
+    "latitude",
+    "longitude",
+    "source"
+  ],
+  "fields": {
+    "site_id": "string",
+    "country": "string",
+    "region": "string|null",
+    "municipality": "string|null",
+    "asset_type": "mobile-site|tower|fiber|edge|gateway|sentinel|node|other",
+    "operator": "string|null",
+    "technologies": "array",
+    "latitude": "number",
+    "longitude": "number",
+    "status": "string|null",
+    "source": "object",
+    "chrono_owned": "boolean",
+    "chrono_managed": "boolean",
+    "verified": "boolean",
+    "last_verified": "string|null"
+  }
+}

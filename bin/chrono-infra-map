@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+echo "============================================================"
+echo " CHRONO INFRASTRUCTURE INTELLIGENCE"
+echo "============================================================"
+
+echo
+echo "COLLECTIONS:"
+echo
+echo "  Colombia:"
+echo "    $ROOT/data/normalized/colombia/sites.json"
+echo
+echo "  Brasil:"
+echo "    $ROOT/data/normalized/brasil/sites.json"
+echo
+echo "DIGITAL TWINS:"
+echo
+echo "    $ROOT/data/digital-twin/colombia.json"
+echo "    $ROOT/data/digital-twin/brasil.json"
+echo
+echo "OFFICIAL SOURCE CATALOG:"
+echo
+echo "    $ROOT/data/catalog/sources.json"
+echo
+echo "WEB VIEW:"
+echo
+echo "    $ROOT/gis/web/index.html"
+echo
+echo "============================================================"
+echo " NOTE"
+echo "============================================================"
+echo
+echo "External infrastructure is reference information."
+echo "Chrono ownership/control requires explicit authorization"
+echo "and a real technical integration."

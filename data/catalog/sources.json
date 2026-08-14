@@ -1,0 +1,21 @@
+{
+  "schema": "chrono.gis.sources",
+  "version": "1.0",
+  "sources": {
+    "CO": {
+      "authority": "CRC / Postdata",
+      "dataset": "Infraestructura y cobertura de redes de acceso móvil",
+      "url": "https://www.postdata.gov.co/dataset/infraestructura-y-cobertura-de-redes-de-acceso-movil",
+      "resource": "https://www.postdata.gov.co/resource/infraestructura-de-redes-de-acceso-movil",
+      "type": "official",
+      "country": "CO"
+    },
+    "BR": {
+      "authority": "ANATEL",
+      "dataset": "Outorga e Licenciamento - Estações Licenciadas",
+      "url": "https://dados.gov.br/dados/conjuntos-dados/outorga-e-licenciamento---estaes-licenciadas",
+      "type": "official",
+      "country": "BR"
+    }
+  }
+}

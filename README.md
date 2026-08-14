@@ -1,131 +1,195 @@
 # ChronoOS
 
-## Security-Oriented Operating System for Dedicated Infrastructure
+## Security, Telecommunications & Sovereign Edge Infrastructure
 
-ChronoOS is an operating system platform designed for dedicated
-infrastructure, security appliances, communication systems,
-industrial environments and controlled deployments.
+**ChronoOS** is an infrastructure operating platform developed for
+dedicated systems, telecommunications infrastructure, private networks,
+edge computing, cybersecurity, industrial environments and controlled
+deployments.
 
-The platform is built around a controlled system architecture rather
-than a general-purpose desktop experience.
+ChronoOS is designed to provide a common infrastructure layer for
+heterogeneous hardware, networks and edge systems through identity,
+security, telemetry, lifecycle management, infrastructure intelligence
+and operational tooling.
 
 ---
 
-# Project History
+## Company
 
-ChronoOS originated in **2024** as a research and development project
-focused on building an independent operating environment for dedicated
-systems.
+**ChronoOS is part of the Chrono Shield technology ecosystem.**
 
-The platform has evolved through multiple engineering stages,
-including:
+**Parent organization:** Chrono Shield Systems  
+**Telecommunications and infrastructure division:** Chrono Shield Networks
 
-- System architecture
-- Core and userspace development
-- Boot and initialization
-- Network infrastructure
-- Security components
+The Chrono platform combines telecommunications, cybersecurity,
+network infrastructure, edge computing, software, hardware and
+infrastructure intelligence.
+
+---
+
+# Founded in 2024
+
+ChronoOS originated in **2024** as part of a broader research and
+development effort focused on creating independent infrastructure
+software for dedicated and controlled environments.
+
+Since its origin, the project has evolved through several areas:
+
+- Operating-system architecture
+- Secure initialization
 - Service management
-- Recovery architecture
-- Hardware-oriented deployment
+- Network infrastructure
+- Telecommunications
+- Private networks
+- 5G infrastructure
+- LoRa and LoRaWAN
+- Edge computing
 - Infrastructure monitoring
-- System attestation
+- Cybersecurity
+- Device identity
+- Hardware integration
+- Digital infrastructure
+- Infrastructure lifecycle management
+- Offline and controlled environments
 
-The current release consolidates these capabilities into the
-ChronoOS platform.
+ChronoOS represents the operating and infrastructure layer of this
+broader technology ecosystem.
 
 ---
 
-# Current Version
+# ChronoOS 1.2.0
 
-## ChronoOS 1.1.0 Stable
+**ChronoOS 1.2.0 — Sovereign Edge**
 
-**ChronoOS 1.1.0** is the official stable release of the ChronoOS
-platform.
+The 1.2.0 generation expands ChronoOS toward a heterogeneous edge
+infrastructure architecture.
 
-This release consolidates the implemented ChronoOS architecture into
-a unified operating system platform for dedicated infrastructure.
+The platform is designed to connect and coordinate different classes
+of infrastructure rather than depend on a single hardware or
+telecommunications vendor.
 
-Major capabilities include:
+The architecture includes:
 
-- Boot and initialization
-- Service supervision
-- Process monitoring
-- Service registry
-- Restart policies
-- Forensic process death memory
-- Anomaly pattern detection
-- Sovereign hardware identity
-- Hardware integrity monitoring
-- Signed destruction attestation
-- Network infrastructure
-- Security controls
-- Recovery mechanisms
-- Dedicated infrastructure tooling
-- 5G infrastructure integration
-- Media infrastructure
-- Command-line management tools
+- Dedicated infrastructure
+- Core Box systems
+- Telecommunications infrastructure
+- Private networks
+- 5G architectures
+- 5G RedCap architecture
+- LoRa
+- LoRaWAN
+- Edge computing
+- Mobile devices
+- ESP32-class devices
+- micro:bit-class devices
+- Linux systems
+- Android / Termux environments
+- iOS integration architecture
+- Chrono Edge Hardware
+- Infrastructure identity
+- Attestation
+- Telemetry
+- Digital Twin
+- GIS
+- Sentinel IA
+- Chrono Ledger
+- Offline and air-gapped operation
 
 ---
 
 # Mission
 
-ChronoOS is designed for systems where the operating environment itself
-is part of the infrastructure.
+ChronoOS is designed to make infrastructure more:
 
-Target environments include:
+- Secure
+- Observable
+- Interoperable
+- Resilient
+- Traceable
+- Manageable
+- Locally autonomous
+- Adaptable to regional requirements
 
-- Security appliances
-- Network infrastructure
-- Communication systems
-- Industrial monitoring
-- Dedicated Core Box systems
-- Restricted infrastructure
-- Offline environments
-- Controlled infrastructure deployments
+The objective is not to reproduce the infrastructure products of
+existing telecommunications or networking vendors.
 
-ChronoOS prioritizes:
-
-- Deterministic startup
-- Process management
-- Network services
-- Local security controls
-- Structured logging
-- Recovery
-- Controlled updates
-- Hardware-specific deployments
-- Reproducible system builds
-- Infrastructure integrity
-- Operational visibility
+ChronoOS is intended to provide an infrastructure layer capable of
+working alongside heterogeneous systems and technologies.
 
 ---
 
-# Architecture
+# Technology Philosophy
+
+Chrono follows a simple principle:
+
+> **We do not build to imitate existing infrastructure.  
+> We build infrastructure layers that solve problems differently.**
+
+ChronoOS is therefore designed around interoperability.
+
+A Chrono deployment may coexist with infrastructure from third-party
+vendors, provided that the required interfaces and authorization
+mechanisms are available.
+
+Chrono does not require an organization to replace all existing
+network infrastructure in order to adopt the platform.
+
+---
+
+# Telecommunications
+
+Chrono Shield Networks develops telecommunications and private-network
+capabilities around the Chrono ecosystem.
+
+Relevant technology areas include:
+
+- 4G / LTE infrastructure
+- 5G
+- Private 5G
+- 5G RedCap
+- Open5GS-based core infrastructure
+- Network monitoring
+- Network diagnostics
+- Edge networking
+- LoRa
+- LoRaWAN
+- Cellular connectivity
+- Network identity
+- Infrastructure telemetry
+- Regional telecommunications profiles
+
+Chrono architecture is designed to complement existing
+telecommunications infrastructure rather than require replacement of
+established RAN, transport or core vendors.
+
+---
+
+# ChronoNet
+
+**ChronoNet** is the infrastructure networking layer connecting
+ChronoOS systems, edge devices and managed infrastructure.
+
+Conceptually:
 
 ```text
-                              ChronoOS
-                                  │
-                    ┌─────────────┴─────────────┐
-                    │                           │
-                  BOOT                       RUNTIME
-                    │                           │
-              chrono-init             Chrono Service Supervisor
-                    │                           │
-                    └─────────────┬─────────────┘
-                                  │
-        ┌─────────────────────────┼─────────────────────────┐
-        │                         │                         │
-      KERNEL                    NETWORK                  SECURITY
-        │                         │                         │
-   Scheduler                   TCP/IP                    Auth
-   Memory                      Firewall                  Vault
-   IPC                         Routing                   Audit
-   Process                     VPN                       Recovery
-   Syscall                     DNS                       Attestation
-   Power                       Mesh                      Hardware Identity
-                               Discovery                 Forensic Monitoring
-                                  │
-                    ┌─────────────┴─────────────┐
-                    │                           │
-                   CLI                      MANAGEMENT
-               chronoctl                    interfaces
+                    CHRONONET
+                       |
+        +--------------+--------------+
+        |              |              |
+       5G            LoRaWAN         Edge
+        |              |              |
+        +--------------+--------------+
+                       |
+                  ChronoOS
+                       |
+        +--------------+--------------+
+        |              |              |
+     Identity       Telemetry      Security
+        |              |              |
+        +--------------+--------------+
+                       |
+                Sentinel IA
+                       |
+                 Digital Twin
+                       |
+                    Ledger
