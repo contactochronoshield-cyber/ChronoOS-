@@ -1,0 +1,51 @@
+{
+  "node_id": "CSN-CO-BOG-BOSA-RECREO-01",
+  "country": "CO",
+  "city": "Bogota D.C.",
+  "locality": "Bosa",
+  "sector": "El Recreo",
+  "reference_site": "Biblioteca Pública Bosa - BibloRed",
+  "address": "Cra. 97C #69A-08 Sur",
+  "latitude": 4.6329853,
+  "longitude": -74.2010831,
+
+  "node_type": "urban_education_community_edge",
+  "status": "strategic_candidate",
+  "ownership": "Chrono Shield Networks",
+  "deployment_status": "not_deployed",
+
+  "strategic_roles": [
+    "education_connectivity",
+    "edge_computing",
+    "iot",
+    "lora",
+    "telemetry",
+    "private_networks",
+    "technology_laboratory",
+    "community_connectivity"
+  ],
+
+  "potential_hardware": [
+    "Chrono Edge Node",
+    "LoRa Gateway",
+    "ESP32",
+    "micro:bit",
+    "5G private network equipment",
+    "network monitoring equipment"
+  ],
+
+  "security": {
+    "private_residence": false,
+    "exact_deployment_site_confirmed": false,
+    "third_party_infrastructure_control_claimed": false,
+    "deployment_requires_authorization": true
+  },
+
+  "official_reference": {
+    "organization": "BibloRed",
+    "site": "Biblioteca Pública Bosa",
+    "url": "https://www.biblored.gov.co/bibliotecas/biblioteca-bosa"
+  },
+
+  "notes": "Strategic planning reference for a future Chrono Shield Networks urban education and community edge node in Bosa El Recreo. Public reference coordinates identify the surrounding facility only and do not represent an installed Chrono node."
+}
