@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "country": "MX",
+  "program": "ChronoOS Academic Edge",
+  "region": "Nuevo Leon",
+  "status": "candidate",
+  "institutions": [
+    {
+      "institution_id": "MX-ACADEMIC-CINVESTAV-MTY",
+      "name": "CINVESTAV Unidad Monterrey",
+      "type": "research_center",
+      "location_precision": "city",
+      "node_status": "not_deployed",
+      "consent": false
+    },
+    {
+      "institution_id": "MX-ACADEMIC-UNAM-PIIT",
+      "name": "UNAM Unidad de Investigación y Tecnología Aplicadas",
+      "type": "research_center",
+      "location_precision": "metro_area",
+      "node_status": "not_deployed",
+      "consent": false
+    }
+  ]
+}
