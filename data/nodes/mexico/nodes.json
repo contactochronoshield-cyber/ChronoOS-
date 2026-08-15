@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "country": "MX",
+  "privacy_model": "coarse_location_only",
+  "nodes": [
+    {
+      "node_id": "MX-CHRONO-001",
+      "status": "pending",
+      "city": null,
+      "region": null,
+      "location_precision": "city",
+      "coordinates": null,
+      "public_ip": null,
+      "private_ip": null,
+      "ssid": null,
+      "bssid": null,
+      "owner_identity": null,
+      "consent": false,
+      "endpoint": null
+    },
+    {
+      "node_id": "MX-CHRONO-002",
+      "status": "pending",
+      "city": null,
+      "region": null,
+      "location_precision": "city",
+      "coordinates": null,
+      "public_ip": null,
+      "private_ip": null,
+      "ssid": null,
+      "bssid": null,
+      "owner_identity": null,
+      "consent": false,
+      "endpoint": null
+    }
+  ]
+}
