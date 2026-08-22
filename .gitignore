@@ -30,3 +30,5 @@ security/auth/*
 
 # Termux/editor temporary files
 *~
+bin/chrono-iot-engine
+var/
