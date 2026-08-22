@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChronoOS IoT Dashboard - Chrono Shield Networks</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e1a; color: #e0e6f0; font-family: 'Courier New', monospace; }
+
+  .header {
+    background: linear-gradient(135deg, #0d1b2a, #1a2744);
+    border-bottom: 2px solid #00d4ff;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo { font-size: 20px; font-weight: bold; color: #00d4ff; letter-spacing: 2px; }
+  .logo span { color: #ffffff; }
+  .status-bar { display: flex; gap: 20px; align-items: center; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #00ff88; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .status-text { font-size: 12px; color: #00ff88; }
+  .timestamp { font-size: 11px; color: #8899aa; }
+
+  .main { padding: 20px 24px; }
+
+  .grid-top { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi-card {
+    background: #0f1829;
+    border: 1px solid #1e3050;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.ok::before { background: #00ff88; }
+  .kpi-card.warning::before { background: #ffaa00; }
+  .kpi-card.critical::before { background: #ff3355; }
+  .kpi-card.info::before { background: #00d4ff; }
+  .kpi-value { font-size: 36px; font-weight: bold; margin: 8px 0; }
+  .kpi-card.ok .kpi-value { color: #00ff88; }
+  .kpi-card.warning .kpi-value { color: #ffaa00; }
+  .kpi-card.critical .kpi-value { color: #ff3355; }
+  .kpi-card.info .kpi-value { color: #00d4ff; }
+  .kpi-label { font-size: 11px; color: #8899aa; text-transform: uppercase; letter-spacing: 1px; }
+
+  .grid-mid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .panel {
+    background: #0f1829;
+    border: 1px solid #1e3050;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .panel-header {
+    background: #1a2744;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #00d4ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .panel-body { padding: 16px; }
+
+  .sensor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .sensor-card {
+    background: #0a0e1a;
+    border: 1px solid #1e3050;
+    border-radius: 6px;
+    padding: 12px;
+    transition: border-color 0.3s;
+  }
+  .sensor-card.ok { border-left: 3px solid #00ff88; }
+  .sensor-card.warning { border-left: 3px solid #ffaa00; }
+  .sensor-card.critical { border-left: 3px solid #ff3355; animation: blink 0.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .sensor-name { font-size: 10px; color: #8899aa; margin-bottom: 4px; }
+  .sensor-value { font-size: 22px; font-weight: bold; margin-bottom: 2px; }
+  .sensor-card.ok .sensor-value { color: #00ff88; }
+  .sensor-card.warning .sensor-value { color: #ffaa00; }
+  .sensor-card.critical .sensor-value { color: #ff3355; }
+  .sensor-unit { font-size: 10px; color: #8899aa; }
+  .sensor-location { font-size: 9px; color: #556677; margin-top: 4px; }
+
+  .alarm-list { max-height: 200px; overflow-y: auto; }
+  .alarm-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1e3050;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .alarm-badge {
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .alarm-badge.WARNING { background: #332200; color: #ffaa00; border: 1px solid #ffaa00; }
+  .alarm-badge.CRITICAL { background: #330011; color: #ff3355; border: 1px solid #ff3355; }
+  .alarm-time { color: #556677; font-size: 10px; white-space: nowrap; }
+  .alarm-msg { color: #ccd6e0; flex: 1; }
+
+  .ledger-list { max-height: 180px; overflow-y: auto; font-size: 11px; }
+  .ledger-item { padding: 6px 0; border-bottom: 1px solid #1a2030; color: #8899aa; }
+  .ledger-item span { color: #00d4ff; }
+
+  .map-panel { position: relative; background: #080c14; border-radius: 6px; height: 180px; overflow: hidden; }
+  .map-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(#1e3050 1px, transparent 1px), linear-gradient(90deg, #1e3050 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+  }
+  .mine-node {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+  .mine-node.ok { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+  .mine-node.warning { background: #ffaa00; box-shadow: 0 0 8px #ffaa00; }
+  .mine-node.critical { background: #ff3355; box-shadow: 0 0 12px #ff3355; animation: pulse 0.5s infinite; }
+  .node-label { position: absolute; font-size: 9px; color: #aabbcc; white-space: nowrap; transform: translateX(-50%); top: 14px; }
+
+  .bottom-bar {
+    background: #080c14;
+    border-top: 1px solid #1e3050;
+    padding: 8px 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #556677;
+  }
+  .no-internet { color: #00ff88; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">CHRONO<span>SHIELD</span> — IoT Industrial Dashboard</div>
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <div class="status-text">CORE BOX ACTIVO</div>
+    <div class="timestamp" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- KPIs -->
+  <div class="grid-top">
+    <div class="kpi-card ok">
+      <div class="kpi-label">Sensores Online</div>
+      <div class="kpi-value" id="kpi-online">7</div>
+      <div class="kpi-label">de 7 autorizados</div>
+    </div>
+    <div class="kpi-card warning" id="kpi-warnings-card">
+      <div class="kpi-label">Advertencias</div>
+      <div class="kpi-value" id="kpi-warnings">0</div>
+      <div class="kpi-label">activas</div>
+    </div>
+    <div class="kpi-card critical" id="kpi-critical-card">
+      <div class="kpi-label">Alarmas Criticas</div>
+      <div class="kpi-value" id="kpi-critical">0</div>
+      <div class="kpi-label">activas</div>
+    </div>
+    <div class="kpi-card info">
+      <div class="kpi-label">Buffer Local</div>
+      <div class="kpi-value" id="kpi-buffer">0</div>
+      <div class="kpi-label">lecturas pendientes</div>
+    </div>
+  </div>
+
+  <!-- Sensores + Alarmas -->
+  <div class="grid-mid">
+    <div class="panel">
+      <div class="panel-header">
+        Sensores en Tiempo Real
+        <span style="color:#556677;font-size:10px">Sin internet — Core Box local</span>
+      </div>
+      <div class="panel-body">
+        <div class="sensor-grid" id="sensor-grid">
+          <!-- generado por JS -->
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Alarmas Activas</div>
+      <div class="panel-body" style="padding:0">
+        <div class="alarm-list" id="alarm-list">
+          <div class="alarm-item" style="color:#556677;font-size:11px">Sin alarmas activas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mapa + Ledger -->
+  <div class="grid-mid">
+    <div class="panel">
+      <div class="panel-header">Mapa del Yacimiento</div>
+      <div class="panel-body" style="padding:8px">
+        <div class="map-panel" id="mine-map">
+          <div class="map-grid"></div>
+          <!-- nodos generados por JS -->
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">Ledger Encadenado</div>
+      <div class="panel-body" style="padding:8px 16px">
+        <div class="ledger-list" id="ledger-list"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-bar">
+  <span class="no-internet">✓ SIN INTERNET — OPERACION SOBERANA</span>
+  <span>ChronoOS v1.0.0-rc1 | Chrono Shield Networks</span>
+  <span>Ledger: <span id="ledger-count">0</span> eventos encadenados</span>
+</div>
+
+<script>
+// Estado de sensores
+const sensorDefs = [
+  { id: 'MILL_VIB_001', name: 'Vibración Molino A', unit: 'mm/s', min: 0, warnMax: 7.5, critMax: 12.0, location: 'Molino Principal' },
+  { id: 'MILL_VIB_002', name: 'Vibración Molino B', unit: 'mm/s', min: 0, warnMax: 7.5, critMax: 12.0, location: 'Molino Principal' },
+  { id: 'MILL_TEMP_001', name: 'Temperatura Motor', unit: '°C',   min: 0, warnMax: 75,  critMax: 90,   location: 'Motor Principal' },
+  { id: 'GAS_CO_001',   name: 'Gas CO',            unit: 'ppm',  min: 0, warnMax: 25,  critMax: 50,   location: 'Galería Norte' },
+  { id: 'GAS_H2S_001',  name: 'Gas H2S',           unit: 'ppm',  min: 0, warnMax: 1,   critMax: 5,    location: 'Zona Procesamiento' },
+  { id: 'TANK_LVL_001', name: 'Nivel Tanque',       unit: '%',    min: 20, warnMax: 95, critMax: 100,  location: 'Tanque Agua' },
+  { id: 'GPS_VEH_001',  name: 'Vehículo 01',        unit: 'km/h', min: 0, warnMax: 40,  critMax: 60,   location: 'Perforación' },
+];
+
+const nodePositions = [
+  { id:'MILL_VIB_001', x:30, y:35 }, { id:'MILL_VIB_002', x:45, y:35 },
+  { id:'MILL_TEMP_001', x:37, y:55 }, { id:'GAS_CO_001', x:65, y:25 },
+  { id:'GAS_H2S_001', x:72, y:60 }, { id:'TANK_LVL_001', x:20, y:70 },
+  { id:'GPS_VEH_001', x:55, y:75 },
+];
+
+let values = {};
+let alarms = [];
+let ledgerEvents = [];
+let bufferCount = 0;
+
+function getStatus(sensor, val) {
+  if (val > sensor.critMax) return 'critical';
+  if (val > sensor.warnMax) return 'warning';
+  return 'ok';
+}
+
+function randomValue(sensor) {
+  const base = sensor.warnMax * 0.6;
+  return parseFloat((base + (Math.random() - 0.3) * base * 0.8).toFixed(2));
+}
+
+function addAlarm(sensor, val, level) {
+  const now = new Date().toLocaleTimeString();
+  alarms.unshift({ sensor: sensor.name, val, level, time: now });
+  if (alarms.length > 20) alarms.pop();
+  ledgerEvents.unshift({ type: `IOT_ALARM_${level}`, msg: `${sensor.id}=${val}${sensor.unit}`, time: now });
+  if (ledgerEvents.length > 30) ledgerEvents.pop();
+  bufferCount++;
+}
+
+function renderSensors() {
+  const grid = document.getElementById('sensor-grid');
+  grid.innerHTML = sensorDefs.map(s => {
+    const val = values[s.id] || 0;
+    const status = getStatus(s, val);
+    return `<div class="sensor-card ${status}">
+      <div class="sensor-name">${s.name}</div>
+      <div class="sensor-value">${val}</div>
+      <div class="sensor-unit">${s.unit}</div>
+      <div class="sensor-location">${s.location}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAlarms() {
+  const list = document.getElementById('alarm-list');
+  if (alarms.length === 0) {
+    list.innerHTML = '<div class="alarm-item" style="color:#556677;font-size:11px">Sin alarmas activas</div>';
+    return;
+  }
+  list.innerHTML = alarms.slice(0, 10).map(a =>
+    `<div class="alarm-item">
+      <span class="alarm-badge ${a.level}">${a.level}</span>
+      <span class="alarm-msg">${a.sensor}: ${a.val}</span>
+      <span class="alarm-time">${a.time}</span>
+    </div>`
+  ).join('');
+}
+
+function renderMap() {
+  const map = document.getElementById('mine-map');
+  const grid = map.querySelector('.map-grid');
+  map.innerHTML = '';
+  map.appendChild(grid);
+  nodePositions.forEach(n => {
+    const sensor = sensorDefs.find(s => s.id === n.id);
+    const val = values[n.id] || 0;
+    const status = sensor ? getStatus(sensor, val) : 'ok';
+    const node = document.createElement('div');
+    node.className = `mine-node ${status}`;
+    node.style.left = n.x + '%';
+    node.style.top = n.y + '%';
+    node.title = `${n.id}: ${val}`;
+    const label = document.createElement('div');
+    label.className = 'node-label';
+    label.textContent = n.id.split('_')[0];
+    label.style.left = n.x + '%';
+    label.style.top = (n.y + 5) + '%';
+    label.style.position = 'absolute';
+    map.appendChild(node);
+    map.appendChild(label);
+  });
+}
+
+function renderLedger() {
+  const list = document.getElementById('ledger-list');
+  list.innerHTML = ledgerEvents.slice(0, 15).map(e =>
+    `<div class="ledger-item"><span>[${e.type}]</span> ${e.msg} <span style="color:#334455">${e.time}</span></div>`
+  ).join('');
+  document.getElementById('ledger-count').textContent = ledgerEvents.length;
+}
+
+function renderKPIs() {
+  const warnings = alarms.filter(a => a.level === 'WARNING').length;
+  const critical = alarms.filter(a => a.level === 'CRITICAL').length;
+  document.getElementById('kpi-warnings').textContent = warnings;
+  document.getElementById('kpi-critical').textContent = critical;
+  document.getElementById('kpi-buffer').textContent = bufferCount;
+}
+
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+}
+
+// Simulacion de datos en tiempo real
+function tick() {
+  sensorDefs.forEach(s => {
+    let val = randomValue(s);
+
+    // Demo: simular crisis de gas cada 30 segundos
+    if (s.id === 'GAS_H2S_001' && Math.random() < 0.05) val = 6.5;
+    if (s.id === 'MILL_VIB_001' && Math.random() < 0.08) val = 9.2;
+
+    const prev = values[s.id];
+    values[s.id] = val;
+    const status = getStatus(s, val);
+    if (status !== 'ok') addAlarm(s, val, status.toUpperCase());
+    ledgerEvents.unshift({ type: 'IOT_READING', msg: `${s.id}=${val}${s.unit}`, time: new Date().toLocaleTimeString() });
+    bufferCount++;
+  });
+
+  renderSensors();
+  renderAlarms();
+  renderMap();
+  renderLedger();
+  renderKPIs();
+}
+
+// Inicializar
+sensorDefs.forEach(s => values[s.id] = randomValue(s));
+setInterval(tick, 3000);
+setInterval(updateClock, 1000);
+tick();
+updateClock();
+</script>
+</body>
+</html>
