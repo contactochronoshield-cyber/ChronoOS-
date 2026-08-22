@@ -1,0 +1,27 @@
+#!/bin/sh
+echo "=============================================="
+echo " CHRONO IOT ENGINE - DEMO MINERIA"
+echo " Core Box activo - Sin dependencia de internet"
+echo "=============================================="
+echo ""
+echo "[*] Lecturas normales de sensores..."
+./bin/chrono-iot-engine process MILL_VIB_001 vibration 4.2
+./bin/chrono-iot-engine process MILL_TEMP_001 temperature 68.5
+./bin/chrono-iot-engine process GAS_CO_001 gas 12.0
+sleep 1
+echo ""
+echo "[*] WARNING - Vibracion elevada en molino..."
+./bin/chrono-iot-engine process MILL_VIB_001 vibration 8.9
+sleep 1
+echo ""
+echo "[*] CONDICION CRITICA - Gas H2S peligroso detectado..."
+./bin/chrono-iot-engine process GAS_H2S_001 gas 6.2
+sleep 1
+echo ""
+echo "[*] Estado del sistema:"
+./bin/chrono-iot-engine status
+echo ""
+echo "=============================================="
+echo " TODO CORRIO SIN INTERNET - DATOS EN BUFFER"
+echo " CADA EVENTO TRAZADO EN LEDGER ENCADENADO"
+echo "=============================================="
