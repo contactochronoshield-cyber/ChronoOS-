@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "country": "MX",
+  "program": "ChronoOS Academic Edge",
+  "region": "CDMX",
+  "status": "candidate",
+  "institutions": [
+    {
+      "institution_id": "MX-ACADEMIC-UNAM",
+      "name": "Universidad Nacional Autónoma de México",
+      "type": "university",
+      "location_precision": "city",
+      "node_status": "not_deployed",
+      "consent": false
+    },
+    {
+      "institution_id": "MX-ACADEMIC-IPN",
+      "name": "Instituto Politécnico Nacional",
+      "type": "university",
+      "location_precision": "city",
+      "node_status": "not_deployed",
+      "consent": false
+    },
+    {
+      "institution_id": "MX-ACADEMIC-UAM",
+      "name": "Universidad Autónoma Metropolitana",
+      "type": "university",
+      "location_precision": "city",
+      "node_status": "not_deployed",
+      "consent": false
+    },
+    {
+      "institution_id": "MX-ACADEMIC-CINVESTAV",
+      "name": "Centro de Investigación y de Estudios Avanzados",
+      "type": "research_center",
+      "location_precision": "city",
+      "node_status": "not_deployed",
+      "consent": false
+    }
+  ]
+}
