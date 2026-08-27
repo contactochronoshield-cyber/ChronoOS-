@@ -76,6 +76,10 @@ case "$1" in
         ;;
     hw)
         case "$2" in
+    tpm)
+        shift
+        exec "$BINDIR/chrono-tpm" "$@"
+        ;;
             scan) exec "$BINDIR/chrono-hardware-guard" ;;
             *) echo "Uso: chrono hw scan"; exit 1 ;;
         esac
