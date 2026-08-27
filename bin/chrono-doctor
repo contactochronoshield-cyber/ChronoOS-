@@ -54,11 +54,11 @@ echo "--- 3. Atestacion de arranque ---"
 if [ -f "./security/auth/boot_manifest.json" ]; then
     ok "Manifiesto de atestacion existe"
     if [ -x "./bin/chrono-attest-verify" ]; then
-        if ./bin/chrono-attest-verify > ~/doctor_attest.log 2>&1; then
+        if ./bin/chrono-attest-verify > /tmp/doctor_attest.log 2>&1; then
             ok "Verificacion de integridad de arranque: PASA"
         else
             bad "Verificacion de integridad de arranque: FALLA (ver detalle abajo)"
-            cat ~/doctor_attest.log | sed 's/^/         /'
+            cat /tmp/doctor_attest.log | sed 's/^/         /'
         fi
     fi
 else
@@ -70,11 +70,11 @@ echo "--- 4. Libro de auditoria (Ledger) ---"
 if [ -f "/mnt/data/chrono_ledger.log" ]; then
     ENTRIES=$(wc -l < "/mnt/data/chrono_ledger.log" 2>/dev/null || echo 0)
     if [ -x "./bin/chrono-ledger" ]; then
-        if ./bin/chrono-ledger verify > ~/doctor_ledger.log 2>&1; then
+        if ./bin/chrono-ledger verify > /tmp/doctor_ledger.log 2>&1; then
             ok "Cadena de auditoria integra ($ENTRIES entradas)"
         else
             bad "Cadena de auditoria COMPROMETIDA - revisar de inmediato"
-            cat ~/doctor_ledger.log | sed 's/^/         /'
+            cat /tmp/doctor_ledger.log | sed 's/^/         /'
         fi
     fi
 else
@@ -110,7 +110,7 @@ fi
 echo ""
 echo "--- 7. Hardware ---"
 if [ -x "./bin/chrono-hardware-guard" ]; then
-    ./bin/chrono-hardware-guard > ~/doctor_hw.log 2>&1
+    ./bin/chrono-hardware-guard > /tmp/doctor_hw.log 2>&1
     QUARANTINE_COUNT=0
     [ -f "./security/auth/quarantine.log" ] && QUARANTINE_COUNT=$(wc -l < "./security/auth/quarantine.log" 2>/dev/null || echo 0)
     if [ "$QUARANTINE_COUNT" -gt 0 ]; then
