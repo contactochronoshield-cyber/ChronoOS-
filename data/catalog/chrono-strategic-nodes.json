@@ -1,0 +1,21 @@
+{
+  "schema": "chrono.infrastructure.strategic_nodes.v1",
+  "nodes": [
+    {
+      "node_id": "CSN-CO-BOG-BOSA-RECREO-01",
+      "country": "CO",
+      "city": "Bogota D.C.",
+      "sector": "Bosa El Recreo",
+      "type": "urban_education_edge_node",
+      "status": "strategic_candidate"
+    },
+    {
+      "node_id": "CSN-BR-SANTOS-PORT-01",
+      "country": "BR",
+      "city": "Santos",
+      "state": "SP",
+      "type": "strategic_port_edge_node",
+      "status": "strategic_candidate"
+    }
+  ]
+}

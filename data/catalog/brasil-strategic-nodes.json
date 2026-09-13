@@ -1,0 +1,12 @@
+{
+  "country": "BR",
+  "nodes": [
+    {
+      "node_id": "CSN-BR-SANTOS-PORT-01",
+      "city": "Santos",
+      "state": "SP",
+      "type": "strategic_port_node",
+      "status": "strategic_candidate"
+    }
+  ]
+}

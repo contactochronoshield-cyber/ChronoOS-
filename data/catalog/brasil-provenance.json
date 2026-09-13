@@ -1,0 +1,11 @@
+{
+  "schema": "chrono.gis.provenance",
+  "country": "BR",
+  "authority": "ANATEL",
+  "dataset": "Estações do Serviço Móvel Pessoal",
+  "source": "ANATEL",
+  "retrieved_at": "2026-08-14T04:14:43.387532+00:00",
+  "sha256": "294f226727bd36c0f9bc06445b3e3d2837640f45f18622409b40862c6e927d93",
+  "synthetic": false,
+  "demo": false
+}

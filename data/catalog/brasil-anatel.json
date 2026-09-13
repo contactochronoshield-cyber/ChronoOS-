@@ -1,0 +1,20 @@
+{
+  "country": "BR",
+  "authority": "ANATEL",
+  "datasets": [
+    {
+      "name": "Estações Licenciadas",
+      "url": "https://www.gov.br/anatel/pt-br/dados/dados-abertos"
+    },
+    {
+      "name": "Estações do Serviço Móvel Pessoal - SMP",
+      "url": "https://www.gov.br/anatel/pt-br/regulado/outorga/telefonia-movel/lista-de-estacoes"
+    },
+    {
+      "name": "Estações Rádio Base",
+      "url": "https://www.gov.br/anatel/pt-br/regulado/outorga/telefonia-movel/estacoes-radio-base"
+    }
+  ],
+  "synthetic": false,
+  "demo": false
+}

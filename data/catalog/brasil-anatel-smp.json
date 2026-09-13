@@ -1,0 +1,12 @@
+{
+  "schema": "chrono.gis.source",
+  "country": "BR",
+  "authority": "ANATEL",
+  "dataset": "Outorga e Licenciamento - Estações Licenciadas",
+  "target_resource": "Estações do Serviço Móvel Pessoal - SMP",
+  "source_portal": "https://dados.gov.br/dados/conjuntos-dados/outorga-e-licenciamento---estaes-licenciadas",
+  "official_station_page": "https://www.gov.br/anatel/pt-br/regulado/outorga/telefonia-movel/lista-de-estacoes",
+  "official_panel": "https://informacoes.anatel.gov.br/paineis/outorga-e-licenciamento/estacoes-do-smp",
+  "synthetic": false,
+  "demo": false
+}

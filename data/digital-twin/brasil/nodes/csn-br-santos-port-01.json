@@ -1,0 +1,32 @@
+{
+  "node_id": "CSN-BR-SANTOS-PORT-01",
+  "country": "BR",
+  "state": "SP",
+  "city": "Santos",
+  "facility": "Porto de Santos",
+  "site_type": "strategic_port_edge_node",
+  "status": "strategic_candidate",
+  "ownership": "Chrono Shield Networks",
+  "infrastructure_status": "planned",
+  "coordinates": null,
+  "coordinate_source": null,
+
+  "strategic_roles": [
+    "port_connectivity",
+    "edge_computing",
+    "private_5g",
+    "iot",
+    "lora",
+    "industrial_telemetry",
+    "network_resilience"
+  ],
+
+  "potential_devices": [
+    "Chrono Edge Node",
+    "LoRa gateway",
+    "ESP32",
+    "private 5G equipment"
+  ],
+
+  "notes": "Strategic candidate associated with the Port of Santos. Does not represent existing Chrono infrastructure or control of third-party telecommunications infrastructure."
+}
