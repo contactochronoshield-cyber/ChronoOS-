@@ -31,3 +31,19 @@ security/auth/*
 # Termux/editor temporary files
 *~
 sentinel/sovereign/state/security-state
+
+# ChronoOS Sentinel runtime state and generated forensic output
+sentinel/sovereign/forensics/*.log
+sentinel/sovereign/state/threat-state
+sentinel/sovereign/state/behavior-state
+
+# ChronoOS Sentinel runtime state
+sentinel/sovereign/state/*
+!sentinel/sovereign/state/.gitkeep
+
+# ChronoOS Sentinel forensic runtime output
+sentinel/sovereign/forensics/*.log
+
+# ChronoOS Sentinel generated threat runtime
+sentinel/sovereign/threats/runtime/
+sentinel/sovereign/threats/*.log
