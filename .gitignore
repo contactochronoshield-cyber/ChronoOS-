@@ -190,3 +190,6 @@ __pycache__/
 .chrono-final-safety-backup-*/
 .chrono-remediation-backup-*/
 
+
+# ChronoOS private authentication keys
+security/keys/*.key
