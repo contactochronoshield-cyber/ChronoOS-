@@ -1,0 +1,11 @@
+2026-09-17T00:33:32Z | SENSOR_GUARD_START
+2026-09-17T00:33:32Z | CAPABILITY_AVAILABLE | Camera interface | termux-camera-info
+2026-09-17T00:33:32Z | CAPABILITY_AVAILABLE | Camera capture interface | termux-camera-photo
+2026-09-17T00:33:32Z | CAPABILITY_AVAILABLE | Microphone interface | termux-microphone-record
+2026-09-17T00:33:32Z | CAPABILITY_AVAILABLE | Location interface | termux-location
+2026-09-17T00:33:32Z | CAPABILITY_NOT_VISIBLE | Bluetooth interface | termux-bluetooth-scaninfo
+2026-09-17T00:33:32Z | CAPABILITY_NOT_VISIBLE | Bluetooth control | termux-bluetooth-enable
+2026-09-17T00:33:32Z | CAPABILITY_AVAILABLE | USB interface | termux-usb
+2026-09-17T00:33:32Z | DEVICE_NAMESPACE_VISIBLE
+2026-09-17T00:33:32Z | SENSOR_POLICY_LOADED
+2026-09-17T00:33:32Z | SENSOR_GUARD_COMPLETE

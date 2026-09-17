@@ -1,0 +1,30 @@
+2026-09-16T23:33:28Z | ANTI_PERSISTENCE_START
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | Termux Boot | /data/data/com.termux/files/home/.termux/boot
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | User Autostart | /data/data/com.termux/files/home/.config/autostart
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | User Systemd | /data/data/com.termux/files/home/.config/systemd/user
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | Systemd Services | /etc/systemd/system
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | Init Scripts | /etc/init.d
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | System Cron | /etc/cron.d
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | Cron Hourly | /etc/cron.hourly
+2026-09-16T23:33:28Z | PERSISTENCE_LOCATION_ABSENT | Cron Daily | /etc/cron.daily
+2026-09-16T23:33:28Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/init
+2026-09-16T23:33:28Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/initramfs
+2026-09-16T23:33:28Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/services
+2026-09-16T23:33:28Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/etc/chrono
+2026-09-16T23:33:28Z | ANTI_PERSISTENCE_POLICY_LOADED
+2026-09-16T23:33:28Z | ANTI_PERSISTENCE_COMPLETE
+2026-09-16T23:34:36Z | ANTI_PERSISTENCE_START
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | Termux Boot | /data/data/com.termux/files/home/.termux/boot
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | User Autostart | /data/data/com.termux/files/home/.config/autostart
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | User Systemd | /data/data/com.termux/files/home/.config/systemd/user
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | Systemd Services | /etc/systemd/system
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | Init Scripts | /etc/init.d
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | System Cron | /etc/cron.d
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | Cron Hourly | /etc/cron.hourly
+2026-09-16T23:34:36Z | PERSISTENCE_LOCATION_ABSENT | Cron Daily | /etc/cron.daily
+2026-09-16T23:34:36Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/init
+2026-09-16T23:34:36Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/initramfs
+2026-09-16T23:34:36Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/services
+2026-09-16T23:34:36Z | CHRONO_STARTUP_COMPONENT_PRESENT | /data/data/com.termux/files/home/chrono-os/etc/chrono
+2026-09-16T23:34:36Z | ANTI_PERSISTENCE_POLICY_LOADED
+2026-09-16T23:34:36Z | ANTI_PERSISTENCE_COMPLETE

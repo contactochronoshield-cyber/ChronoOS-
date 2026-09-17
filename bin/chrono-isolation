@@ -1,0 +1,5 @@
+#!/bin/sh
+
+CHRONO_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+
+exec "$CHRONO_ROOT/sentinel/sovereign/isolation/chrono-isolation-engine.sh" "$@"
