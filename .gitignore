@@ -59,3 +59,7 @@ sentinel/sovereign/evidence/acquisition/*
 sentinel/sovereign/evidence/hashes/*
 sentinel/sovereign/evidence/manifests/*
 sentinel/sovereign/evidence/chain-of-custody/*
+
+# Chrono Telecom Threat Observatory runtime
+sentinel/sovereign/reports/telecom/*
+sentinel/sovereign/state/telecom-threat-state
