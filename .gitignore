@@ -179,3 +179,14 @@ chrono-final-remediation-*.txt
 .env.*
 *.secret
 *.secrets
+
+# Python runtime artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ChronoOS local security/audit artifacts
+.chrono-audit/
+.chrono-final-safety-backup-*/
+.chrono-remediation-backup-*/
+
