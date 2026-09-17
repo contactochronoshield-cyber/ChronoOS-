@@ -47,3 +47,9 @@ sentinel/sovereign/forensics/*.log
 # ChronoOS Sentinel generated threat runtime
 sentinel/sovereign/threats/runtime/
 sentinel/sovereign/threats/*.log
+
+# ChronoOS Sentinel generated attribution state
+sentinel/sovereign/state/attribution-state
+
+# ChronoOS Sentinel generated attribution reports
+sentinel/sovereign/reports/attribution/*.txt
