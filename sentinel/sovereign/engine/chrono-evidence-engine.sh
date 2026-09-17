@@ -53,7 +53,11 @@ printf '%s\n' "===== EVIDENCE INVENTORY ====="
 : > "$HASH_FILE"
 : > "$MANIFEST"
 
-find "$ACQUISITION_DIR" -type f -print 2>/dev/null |
+TMP_LIST="$EVIDENCE_DIR/.evidence-list-$$"
+trap 'rm -f "$TMP_LIST"' EXIT HUP INT TERM
+
+find "$ACQUISITION_DIR" -type f -print 2>/dev/null > "$TMP_LIST"
+
 while IFS= read -r FILE; do
     [ -n "$FILE" ] || continue
 
@@ -77,7 +81,7 @@ while IFS= read -r FILE; do
     printf '%s\n' ""
 
     COUNT=$((COUNT + 1))
-done
+done < "$TMP_LIST"
 
 {
     printf '%s\n' "CHRONO_CHAIN_OF_CUSTODY_V1"
