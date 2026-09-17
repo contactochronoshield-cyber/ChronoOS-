@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - Process Death Memory
  * Extension forense para el supervisor de procesos: registra COMO y
  * POR QUE murio cada servicio, detecta patrones anomalos (muertes muy
@@ -19,7 +20,7 @@
 void log_ledger(const char *event_type, const char *details) {
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null", event_type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 void record_death(const char *service_name, int exit_code, int signal_num) {

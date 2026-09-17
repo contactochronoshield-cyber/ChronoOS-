@@ -70,3 +70,112 @@ sentinel/sovereign/telecom/events/observed/OBS-TEST-*.conf
 # Chrono Telecom correlation runtime
 sentinel/sovereign/reports/telecom/telecom-correlation-report.txt
 sentinel/sovereign/state/telecom-correlation-state
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# ChronoOS security/runtime data
+security/runtime/
+security/evidence/*
+security/keys/*
+security/pki/dev/*
+security/ledger/*.db
+security/ledger/*.sqlite
+security/ledger/*.sqlite3
+
+# Operational data
+data/
+logs/
+backups/
+dist/
+bin/
+
+# Certificates / private material
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build artifacts
+build/
+*.o
+*.so
+*.a
+*.dll
+*.exe
+
+# Fuzzing artifacts
+.fuzz/
+corpus/
+crash-*
+leak-*
+timeout-*
+
+# Chrono remediation reports/backups
+.chrono-remediation-backup/
+chrono-remediation-report-*.txt
+
+# Python generated files — global
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# Chrono remediation backups
+.chrono-remediation-backup/
+
+# Remediation reports
+chrono-remediation-report-*.txt
+
+# ChronoOS runtime / forensic data
+security/ledger/*.jsonl
+security/ledger/*.lock
+security/runtime/
+security/state/
+security/evidence/
+security/vaults/
+security/auth/*.key
+security/auth/*.pem
+security/auth/*.priv
+security/pki/private/
+security/pki/secrets/
+
+# Runtime
+var/
+tmp/
+logs/
+*.log
+
+# Build
+build/
+dist/
+*.o
+*.a
+*.so
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Local remediation backups
+.chrono-remediation-backup/
+.chrono-final-backup/
+chrono-final-remediation-*.txt
+
+# Local credentials
+.env
+.env.*
+*.secret
+*.secrets

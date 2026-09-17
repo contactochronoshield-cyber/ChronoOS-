@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - Visitor Access
  * Control de acceso temporal para visitantes: el residente autoriza un
  * visitante por una ventana de tiempo especifica (ej: 2 horas), revocable
@@ -16,7 +17,7 @@
 void log_ledger(const char *event_type, const char *details) {
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null", event_type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 // Autoriza un visitante con ventana de tiempo especifica

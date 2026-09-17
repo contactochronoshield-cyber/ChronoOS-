@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - Sovereign Device Identity
  * Identidad de dispositivo generada 100% offline: huella de hardware +
  * secreto local + par de llaves propio. Dos equipos ChronoOS se
@@ -32,11 +33,11 @@ int gather_hw_fingerprint(char *out, size_t outlen) {
     char buf[2048] = {0};
     FILE *f;
 
-    f = popen("cat /proc/cpuinfo 2>/dev/null | grep -i 'hardware\\|serial' | head -3", "r");
+    f = chrono_popen_disabled("cat /proc/cpuinfo 2>/dev/null | grep -i 'hardware\\|serial' | head -3", "r");
     if (f) { fread(buf, 1, sizeof(buf) - 1, f); pclose(f); }
 
     char buf2[512] = {0};
-    f = popen("getprop ro.serialno 2>/dev/null || cat /sys/class/dmi/id/board_serial 2>/dev/null", "r");
+    f = chrono_popen_disabled("getprop ro.serialno 2>/dev/null || cat /sys/class/dmi/id/board_serial 2>/dev/null", "r");
     if (f) { fread(buf2, 1, sizeof(buf2) - 1, f); pclose(f); }
 
     strncat(buf, buf2, sizeof(buf) - strlen(buf) - 1);
@@ -75,7 +76,7 @@ int main(int argc, char *argv[]) {
 
         char cmd[512];
         snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"DEVICE_IDENTITY_GENERATED\" \"device_id=%s\" 2>/dev/null", combined_id);
-        system(cmd);
+        chrono_system_disabled(cmd);
 
     } else if (strcmp(argv[1], "verify-hw") == 0) {
         char current_fp[2048], current_hash[65];
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
         } else {
             printf("[!] ALERTA: huella de hardware CAMBIO. Posible manipulacion fisica.\n");
             printf("[!] Se recomienda rotar identidad: chrono-device-identity generate\n");
-            system("./bin/chrono-ledger append \"HW_TAMPER_DETECTED\" \"fingerprint_mismatch\" 2>/dev/null");
+            chrono_system_disabled("./bin/chrono-ledger append \"HW_TAMPER_DETECTED\" \"fingerprint_mismatch\" 2>/dev/null");
             return 1;
         }
     }

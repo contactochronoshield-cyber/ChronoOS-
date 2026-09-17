@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - LPR Guard (Reconocimiento de Placas)
  * NOTA HONESTA: este modulo NO hace reconocimiento optico de caracteres
  * (OCR) desde cero - eso requiere modelos de vision por computadora
@@ -21,7 +22,7 @@
 void log_ledger(const char *event_type, const char *details) {
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null", event_type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 void normalize_plate(char *plate) {

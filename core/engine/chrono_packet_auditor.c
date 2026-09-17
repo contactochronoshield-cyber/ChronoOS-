@@ -1,3 +1,4 @@
+#include "common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +19,7 @@ int main(int argc, char *argv[]) {
         print_help();
         // Fallback robusto a modo de auditoría de sockets locales si no hay permisos de root
         printf("[*] Iniciando auditoría de sockets y descriptores de archivo locales...\n");
-        system("cat /proc/net/tcp 2>/dev/null || echo 'No tcp proc access'");
+        chrono_system_disabled("cat /proc/net/tcp 2>/dev/null || echo 'No tcp proc access'");
         return 0;
     }
 
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
     if (sock_raw < 0) {
         perror("[!] Error crítico: No se pudo abrir el socket raw (¿Faltan privilegios root?)");
         printf("[*] Ejecutando análisis de respaldo de tablas de enrutamiento...\n");
-        system("ip route show");
+        chrono_system_disabled("ip route show");
         return 1;
     }
 

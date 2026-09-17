@@ -1,3 +1,4 @@
+#include "../core/common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -16,7 +17,7 @@ void chrono_power_shield_monitor(void) {
     
     if (!grid_stable) {
         printf("[ALERTA] Anomalía eléctrica global detectada. Activando perfil de supervivencia.\n");
-        system("echo 'CONSERVATION' > /sys/power/chrono_state");
+        chrono_system_disabled("echo 'CONSERVATION' > /sys/power/chrono_state");
         // Apagar interfaces no esenciales, reducir frecuencia del CPU y proteger memorias
     } else {
         printf("[ChronoPower] Red eléctrica estable. Operación normal.\n");

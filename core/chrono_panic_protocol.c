@@ -1,3 +1,4 @@
+#include "common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +60,7 @@ void execute_ssd_crypto_shred(void) {
         printf("[SSD-PURGE] Cabecera de cifrado destruida con éxito. Datos en SSD irrecuperables.\n");
     } else {
         // Fallback: destrucción de claves simétricas locales de bóveda
-        system("dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc 2>/dev/null || true");
+        chrono_system_disabled("dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc 2>/dev/null || true");
     }
 }
 
@@ -93,7 +94,7 @@ void execute_total_panic_protocol(void) {
         write(sysrq, "c", 1);
         close(sysrq);
     } else {
-        system("reboot -f");
+        chrono_system_disabled("reboot -f");
     }
 }
 

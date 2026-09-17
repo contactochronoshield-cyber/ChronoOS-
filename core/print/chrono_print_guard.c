@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - Print Guard
  * Puente soberano entre ChronoOS y una impresora 3D con firmware Klipper
  * via Moonraker API (HTTP REST, protocolo publico estandar de Klipper).
@@ -24,7 +25,7 @@
 int verify_gcode_integrity(const char *gcode_path, const char *bundle_path) {
     char cmd[MAX_PATH * 2];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-pin-verify %s %s > /tmp/print_verify.log 2>&1", gcode_path, bundle_path);
-    int ret = system(cmd);
+    int ret = chrono_system_disabled(cmd);
     return ret == 0;
 }
 
@@ -34,7 +35,7 @@ void log_print_event(const char *event_type, const char *filename, const char *o
     snprintf(details, sizeof(details), "file=%s operator=%s", filename, operator_id);
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"%s\" \"%s\"", event_type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 // Genera el comando curl real para enviar el trabajo a Moonraker.

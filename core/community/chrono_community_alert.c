@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - Community Alert (Chrono Conjunto)
  * Sistema de alerta de emergencia para conjuntos residenciales que NO
  * depende de internet ni de red celular. Los nodos (garita, administracion,
@@ -66,7 +67,7 @@ void log_alert(const char *type, const char *origin, const char *message) {
     // Tambien queda en el ledger encadenado si esta disponible
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"COMMUNITY_ALERT\" \"tipo=%s origen=%s\" 2>/dev/null", type, origin);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 // Propaga la alerta a TODOS los nodos del mesh, sin depender de internet
@@ -129,7 +130,7 @@ void listen_mode(const char *my_label) {
 
             // Opcional: hacer sonar algo, encender un LED via GPIO, etc.
             // segun el hardware del nodo (garita puede tener altavoz/sirena)
-            system("echo -e '\\a' 2>/dev/null"); // beep audible si el terminal lo soporta
+            chrono_system_disabled("echo -e '\\a' 2>/dev/null"); // beep audible si el terminal lo soporta
         }
     }
 }

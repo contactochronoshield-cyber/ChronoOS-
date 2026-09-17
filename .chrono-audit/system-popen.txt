@@ -1,0 +1,53 @@
+core/chrono_master_orchestrator.c:24:            system("./build/chrono_power_shield");
+core/chrono_panic_protocol.c:62:        system("dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc 2>/dev/null || true");
+core/chrono_panic_protocol.c:96:        system("reboot -f");
+core/chrono_power_shield.c:77:        system("ip link set wlan0 down 2>/dev/null || true");
+core/chrono_power_shield.c:78:        system("ip link set bluetooth down 2>/dev/null || true");
+core/chrono_power_shield.c:81:        system("for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$gov\" ] && echo 'powersave' > \"$gov\" 2>/dev/null || true; done");
+core/chrono_power_shield.c:84:        system("for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$gov\" ] && echo 'performance' > \"$gov\" 2>/dev/null || true; done");
+core/engine/chrono_packet_auditor.c:21:        system("cat /proc/net/tcp 2>/dev/null || echo 'No tcp proc access'");
+core/engine/chrono_packet_auditor.c:33:        system("ip route show");
+core/print/chrono_print_guard.c:27:    int ret = system(cmd);
+core/print/chrono_print_guard.c:37:    system(cmd);
+core/community/chrono_community_alert.c:69:    system(cmd);
+core/community/chrono_community_alert.c:132:            system("echo -e '\\a' 2>/dev/null"); // beep audible si el terminal lo soporta
+core/community/chrono_visitor_access.c:19:    system(cmd);
+core/community/chrono_lpr.c:24:    system(cmd);
+core/network5g/chrono_5g_manager.c:8: * - No system().
+core/network5g/chrono_5g_manager.c:9: * - No popen().
+core/attestation/chrono_provable_destruction.c:93:    FILE *vf = popen("find ./security/vaults -type f 2>/dev/null | sort | xargs sha256sum 2>/dev/null | sha256sum | cut -d' ' -f1", "r");
+core/attestation/chrono_provable_destruction.c:135:    system("for f in ./security/vaults/*; do [ -f \"$f\" ] && dd if=/dev/urandom of=\"$f\" bs=1 count=$(stat -c%s \"$f\" 2>/dev/null) conv=notrunc 2>/dev/null; done");
+core/attestation/chrono_provable_destruction.c:136:    system("rm -rf ./security/vaults/*");
+core/attestation/chrono_provable_destruction.c:141:    system("pkill -f open5gs 2>/dev/null; systemctl stop open5gs-* 2>/dev/null");
+core/attestation/chrono_provable_destruction.c:146:    system("rm -f ./security/auth/device_identity.json 2>/dev/null");
+core/attestation/chrono_provable_destruction.c:151:    system("echo 3 > /proc/sys/vm/drop_caches 2>/dev/null");
+core/attestation/chrono_provable_destruction.c:192:    system("echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null");
+core/identity/chrono_device_identity.c:35:    f = popen("cat /proc/cpuinfo 2>/dev/null | grep -i 'hardware\\|serial' | head -3", "r");
+core/identity/chrono_device_identity.c:39:    f = popen("getprop ro.serialno 2>/dev/null || cat /sys/class/dmi/id/board_serial 2>/dev/null", "r");
+core/identity/chrono_device_identity.c:78:        system(cmd);
+core/identity/chrono_device_identity.c:100:            system("./bin/chrono-ledger append \"HW_TAMPER_DETECTED\" \"fingerprint_mismatch\" 2>/dev/null");
+core/supervisor/chrono_death_memory.c:22:    system(cmd);
+core/vehicle/chrono_can_guard.c:7: * - No system()
+core/vehicle/chrono_can_guard.c:8: * - No popen()
+core/auth/chrono_context_auth.c:27:    system(cmd);
+core/auth/chrono_context_auth.c:32:    FILE *f = popen("ip addr show 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -5", "r");
+core/auth/chrono_context_auth.c:35:    FILE *f2 = popen("wg show 2>/dev/null | grep peer | head -5", "r");
+core/auth/chrono_context_auth.c:42:    FILE *f = popen("getprop ro.serialno 2>/dev/null || cat /proc/cpuinfo 2>/dev/null | grep Serial | head -1", "r");
+core/iot/chrono_iot_engine.c:38:    system(cmd);
+core/tpm/chrono_tpm.c:39:    system(cmd);
+core/tpm/chrono_tpm.c:44:    return system("tpm2_getrandom 1 > /dev/null 2>&1") == 0;
+core/tpm/chrono_tpm.c:55:    FILE *f = popen(cmd, "r");
+core/tpm/chrono_tpm.c:84:    system("tpm2_createpolicy --policy-pcr --pcr-list sha256:0,1,7 "
+core/tpm/chrono_tpm.c:99:    system(cmd);
+core/tpm/chrono_tpm.c:114:        system("./bin/chrono-attest-verify 2>/dev/null || "
+core/tpm/chrono_tpm.c:122:    system("tpm2_pcrread sha256:0,1,7 2>/dev/null");
+core/tpm/chrono_tpm.c:125:    system("sha256sum ./bin/chrono-core ./bin/chrono-panic "
+core/tpm/chrono_tpm.c:151:    system("tpm2_getrandom 32 --hex > /tmp/chrono_nonce.hex 2>/dev/null");
+core/tpm/chrono_tpm.c:154:    system("tpm2_quote -c 0x81000002 -l sha256:0,1,7 "
+core/tpm/chrono_tpm.c:177:    system("tpm2_evictcontrol -C o -c 0x81000001 2>/dev/null");
+core/common/chrono_exec.h:12: * No system().
+core/common/chrono_exec.h:13: * No popen().
+initramfs/core/engine/chrono_packet_auditor.c:13:        system("cat /proc/net/tcp 2>/dev/null || echo 'No tcp proc access'");
+initramfs/core/engine/chrono_packet_auditor.c:20:        system("ip route show");
+kernel/power/chrono_rtc.c:7:    system("hwclock --systohc --local");
+kernel/power/solar_shield.c:19:        system("echo 'CONSERVATION' > /sys/power/chrono_state");

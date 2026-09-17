@@ -1,3 +1,4 @@
+#include "common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,22 +25,22 @@ void sha256_hex(const char *input, char out[65]) {
 void log_ledger(const char *type, const char *details) {
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null", type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 void gather_network_context(char *out, size_t outlen) {
     char buf[2048] = {0};
-    FILE *f = popen("ip addr show 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -5", "r");
+    FILE *f = chrono_popen_disabled("ip addr show 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -5", "r");
     if (f) { fread(buf, 1, sizeof(buf)-1, f); pclose(f); }
     char buf2[512] = {0};
-    FILE *f2 = popen("wg show 2>/dev/null | grep peer | head -5", "r");
+    FILE *f2 = chrono_popen_disabled("wg show 2>/dev/null | grep peer | head -5", "r");
     if (f2) { fread(buf2, 1, sizeof(buf2)-1, f2); pclose(f2); }
     snprintf(out, outlen, "NET:%s|WG:%s", buf, buf2);
 }
 
 void gather_hw_context(char *out, size_t outlen) {
     char buf[512] = {0};
-    FILE *f = popen("getprop ro.serialno 2>/dev/null || cat /proc/cpuinfo 2>/dev/null | grep Serial | head -1", "r");
+    FILE *f = chrono_popen_disabled("getprop ro.serialno 2>/dev/null || cat /proc/cpuinfo 2>/dev/null | grep Serial | head -1", "r");
     if (f) { fread(buf, 1, sizeof(buf)-1, f); pclose(f); }
     snprintf(out, outlen, "HW:%s", buf);
 }

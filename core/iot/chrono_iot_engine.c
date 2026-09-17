@@ -1,3 +1,4 @@
+#include "common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +36,7 @@ static int rule_count = 0;
 void log_ledger(const char *event_type, const char *details) {
     char cmd[1024];
     snprintf(cmd, sizeof(cmd), "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null", event_type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 void load_sensors() {

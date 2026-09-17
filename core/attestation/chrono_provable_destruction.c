@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - Provable Destruction v2
  * Sistema de "Destruccion con Evidencia Criptografica Fuerte".
  *
@@ -90,7 +91,7 @@ int execute_provable_destruction() {
 
     // Hash del estado actual de los vaults (prueba de que existian)
     char vault_state_hash[65] = "no_vaults_present";
-    FILE *vf = popen("find ./security/vaults -type f 2>/dev/null | sort | xargs sha256sum 2>/dev/null | sha256sum | cut -d' ' -f1", "r");
+    FILE *vf = chrono_popen_disabled("find ./security/vaults -type f 2>/dev/null | sort | xargs sha256sum 2>/dev/null | sha256sum | cut -d' ' -f1", "r");
     if (vf) { fgets(vault_state_hash, sizeof(vault_state_hash), vf); pclose(vf); vault_state_hash[64] = '\0'; }
 
     char record[2048];
@@ -132,23 +133,23 @@ int execute_provable_destruction() {
 
     // 4b. Purga de vaults
     printf("  [*] Purgando vaults...\n");
-    system("for f in ./security/vaults/*; do [ -f \"$f\" ] && dd if=/dev/urandom of=\"$f\" bs=1 count=$(stat -c%s \"$f\" 2>/dev/null) conv=notrunc 2>/dev/null; done");
-    system("rm -rf ./security/vaults/*");
+    chrono_system_disabled("for f in ./security/vaults/*; do [ -f \"$f\" ] && dd if=/dev/urandom of=\"$f\" bs=1 count=$(stat -c%s \"$f\" 2>/dev/null) conv=notrunc 2>/dev/null; done");
+    chrono_system_disabled("rm -rf ./security/vaults/*");
     printf("  [✓] Vaults purgados.\n");
 
     // 4c. Detener nucleo 5G
     printf("  [*] Deteniendo nucleo 5G...\n");
-    system("pkill -f open5gs 2>/dev/null; systemctl stop open5gs-* 2>/dev/null");
+    chrono_system_disabled("pkill -f open5gs 2>/dev/null; systemctl stop open5gs-* 2>/dev/null");
     printf("  [✓] Nucleo 5G detenido.\n");
 
     // 4d. Invalidar identidad de hardware
     printf("  [*] Invalidando identidad de hardware...\n");
-    system("rm -f ./security/auth/device_identity.json 2>/dev/null");
+    chrono_system_disabled("rm -f ./security/auth/device_identity.json 2>/dev/null");
     printf("  [✓] Identidad de hardware invalidada.\n");
 
     // 4e. Purgar caches del kernel
     sync();
-    system("echo 3 > /proc/sys/vm/drop_caches 2>/dev/null");
+    chrono_system_disabled("echo 3 > /proc/sys/vm/drop_caches 2>/dev/null");
 
     // 5. Emitir el certificado de destruccion DESPUES de ejecutar todo
     char cert_hash[65];
@@ -189,7 +190,7 @@ int execute_provable_destruction() {
 
     // 6. Apagado forzado
     sleep(2);
-    system("echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null");
+    chrono_system_disabled("echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null");
     return 0;
 }
 

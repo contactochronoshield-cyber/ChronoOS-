@@ -2,10 +2,13 @@ CC = gcc
 CFLAGS = -O2 -Wall -Wextra
 LDFLAGS = -lcrypto
 
-all: directories build/chrono_power_shield build/chrono_panic_protocol build/chrono_pin_forge build/chrono_master build/chrono_synthetic_life
+all: directories build/chrono_can_guard build/chrono_power_shield build/chrono_panic_protocol build/chrono_pin_forge build/chrono_master build/chrono_synthetic_life
 
 directories:
 	mkdir -p build core scripts vault/carrington_safe vault/sentient_entities crypto_keys config var/run
+
+build/chrono_can_guard: core/vehicle/chrono_can_guard.c core/common/chrono_exec.c core/common/chrono_exec.h
+	$(CC) $(CFLAGS) core/vehicle/chrono_can_guard.c core/common/chrono_exec.c -o build/chrono_can_guard
 
 build/chrono_power_shield: core/chrono_power_shield.c
 	$(CC) $(CFLAGS) core/chrono_power_shield.c -o build/chrono_power_shield

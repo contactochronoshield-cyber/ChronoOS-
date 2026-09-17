@@ -1,3 +1,4 @@
+#include "common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,14 +75,14 @@ void update_heartbeat(void) {
 void execute_power_action(PowerMode mode) {
     if (mode == POWER_MODE_DEEP_SLEEP_OFFGRID) {
         log_blackbox("CRITICAL", "Aislamiento extremo: Apagando interfaces de red no esenciales.");
-        system("ip link set wlan0 down 2>/dev/null || true");
-        system("ip link set bluetooth down 2>/dev/null || true");
+        chrono_system_disabled("ip link set wlan0 down 2>/dev/null || true");
+        chrono_system_disabled("ip link set bluetooth down 2>/dev/null || true");
     } else if (mode == POWER_MODE_CONSERVATION) {
         log_blackbox("WARNING", "Modo Conservación: Limitando frecuencia de CPU a perfil eco.");
-        system("for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$gov\" ] && echo 'powersave' > \"$gov\" 2>/dev/null || true; done");
+        chrono_system_disabled("for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$gov\" ] && echo 'powersave' > \"$gov\" 2>/dev/null || true; done");
     } else {
         log_blackbox("INFO", "Restaurando rendimiento nominal del procesador.");
-        system("for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$gov\" ] && echo 'performance' > \"$gov\" 2>/dev/null || true; done");
+        chrono_system_disabled("for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w \"$gov\" ] && echo 'performance' > \"$gov\" 2>/dev/null || true; done");
     }
 }
 

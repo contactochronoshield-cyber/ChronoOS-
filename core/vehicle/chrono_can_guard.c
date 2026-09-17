@@ -1,165 +1,335 @@
 /**
- * ChronoOS - CAN Bus Guard (Proteccion de Vehiculos)
- * 
- * El bus CAN (Controller Area Network) es el sistema de comunicacion
- * interno de todos los vehiculos modernos desde ~1996. Conecta frenos,
- * motor, direccion, airbags, ECU — sin autenticacion ni cifrado.
- * 
- * Vulnerabilidades documentadas reales:
- * - Miller & Valasek (2015): hackearon remotamente un Jeep Cherokee
- *   en movimiento — tomaron control de frenos y direccion por internet
- * - Cualquier OBD-II (el puerto de diagnostico bajo el volante) da
- *   acceso completo al bus CAN
- * - Empresas israelies (Argus, GuardKnox, Upstream Security) cobran
- *   $50,000-500,000 USD por proteger flotas industriales
- * 
- * ChronoOS CAN Guard: monitoreo de anomalias en mensajes CAN,
- * deteccion de inyeccion de comandos maliciosos, whitelist de
- * mensajes legitimos, registro forense en el Ledger encadenado.
- * 
- * LIMITE HONESTO: requiere hardware OBD-II con interfaz SocketCAN
- * (ej: ELM327, CANable, PiCAN) para conectarse al vehiculo real.
- * Esta implementacion corre en el Core Box o Raspberry Pi dentro
- * del vehiculo. En Termux/Android es simulacion para desarrollo.
+#include "common/chrono_shell_guard.h"
+ * ChronoOS - CAN Bus Guard
+ *
+ * Defensive CAN anomaly monitor.
+ *
+ * Security properties:
+ * - No chrono_system_disabled()
+ * - No chrono_popen_disabled()
+ * - No shell execution
+ * - Whitelist-based analysis
+ * - Forensic Ledger recording through direct exec
+ * - No automatic vehicle-control action
+ *
+ * Termux/Android:
+ * This binary provides simulation/development behavior.
+ *
+ * Production:
+ * Requires an authorized CAN interface, normally SocketCAN,
+ * plus an independently validated deployment configuration.
  */
 
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <stdint.h>
 
-#define CAN_WHITELIST  "./etc/chrono/can_whitelist.conf"
-#define CAN_LOG        "./var/logs/can_audit.log"
-#define MAX_RULES      512
+#include "../common/chrono_exec.h"
+
+#define CAN_WHITELIST "./etc/chrono/can_whitelist.conf"
+#define MAX_RULES 512
 
 typedef struct {
-    uint32_t can_id;      // ID del mensaje CAN (11 o 29 bits)
-    uint8_t  min_data;    // valor minimo esperado en byte 0
-    uint8_t  max_data;    // valor maximo esperado en byte 0
-    char     description[64];
-    char     system[32];  // brake, engine, steering, airbag, etc
+    uint32_t can_id;
+    uint8_t min_data;
+    uint8_t max_data;
+    char description[64];
+    char system[32];
 } CANRule;
 
 static CANRule rules[MAX_RULES];
-static int rule_count = 0;
+static size_t rule_count = 0U;
 
-void log_ledger(const char *type, const char *details) {
-    char cmd[1024];
-    snprintf(cmd, sizeof(cmd),
-        "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null",
-        type, details);
-    system(cmd);
+static void log_ledger(const char *type, const char *details)
+{
+    if (type == NULL || details == NULL) {
+        return;
+    }
+
+    int rc = chrono_ledger_append(type, details);
+
+    if (rc != 0) {
+        fprintf(
+            stderr,
+            "[CHRONO] Ledger append failed: rc=%d event=%s\n",
+            rc,
+            type);
+    }
 }
 
-void load_whitelist() {
-    FILE *f = fopen(CAN_WHITELIST, "r");
-    if (!f) { printf("[!] Sin whitelist CAN\n"); return; }
+static int parse_rule_line(
+    const char *line,
+    CANRule *rule)
+{
+    if (line == NULL || rule == NULL) {
+        return 0;
+    }
+
+    unsigned int id = 0U;
+    int min_value = 0;
+    int max_value = 0;
+
+    char system_name[32] = {0};
+    char description[64] = {0};
+
+    int parsed = sscanf(
+        line,
+        "%x,%d,%d,%31[^,],%63[^\n]",
+        &id,
+        &min_value,
+        &max_value,
+        system_name,
+        description);
+
+    if (parsed < 4) {
+        return 0;
+    }
+
+    if (id > 0x1FFFFFFFU) {
+        return 0;
+    }
+
+    if (min_value < 0 || min_value > 255 ||
+        max_value < 0 || max_value > 255 ||
+        min_value > max_value) {
+        return 0;
+    }
+
+    memset(rule, 0, sizeof(*rule));
+
+    rule->can_id = (uint32_t)id;
+    rule->min_data = (uint8_t)min_value;
+    rule->max_data = (uint8_t)max_value;
+
+    (void)snprintf(
+        rule->system,
+        sizeof(rule->system),
+        "%s",
+        system_name);
+
+    if (parsed >= 5) {
+        (void)snprintf(
+            rule->description,
+            sizeof(rule->description),
+            "%s",
+            description);
+    } else {
+        (void)snprintf(
+            rule->description,
+            sizeof(rule->description),
+            "CAN rule");
+    }
+
+    return 1;
+}
+
+static void load_whitelist(void)
+{
+    FILE *file = fopen(CAN_WHITELIST, "r");
+
+    if (file == NULL) {
+        printf(
+            "[!] Sin whitelist CAN: %s\n",
+            CAN_WHITELIST);
+        return;
+    }
+
     char line[256];
-    while (fgets(line, sizeof(line), f) && rule_count < MAX_RULES) {
-        if (line[0] == '#' || line[0] == '\n') continue;
-        CANRule r;
-        uint32_t id;
-        int min, max;
-        if (sscanf(line, "%x,%d,%d,%31[^,],%63[^\n]",
-                &id, &min, &max, r.system, r.description) >= 4) {
-            r.can_id = id;
-            r.min_data = (uint8_t)min;
-            r.max_data = (uint8_t)max;
-            rules[rule_count++] = r;
+
+    while (fgets(line, sizeof(line), file) != NULL &&
+           rule_count < MAX_RULES) {
+
+        if (line[0] == '#' || line[0] == '\n') {
+            continue;
+        }
+
+        CANRule rule;
+
+        if (parse_rule_line(line, &rule) != 0) {
+            rules[rule_count] = rule;
+            rule_count++;
         }
     }
-    fclose(f);
-    printf("[✓] %d reglas CAN cargadas\n", rule_count);
+
+    fclose(file);
+
+    printf(
+        "[✓] %zu reglas CAN cargadas\n",
+        rule_count);
 }
 
-int analyze_frame(uint32_t can_id, uint8_t *data, int dlc) {
-    // Buscar regla para este ID
-    for (int i = 0; i < rule_count; i++) {
-        if (rules[i].can_id == can_id) {
-            uint8_t val = data[0];
-            if (val < rules[i].min_data || val > rules[i].max_data) {
-                printf("\n  ╔══════════════════════════════════════════╗\n");
-                printf("  ║ ANOMALIA CAN DETECTADA                    ║\n");
-                printf("  ║ ID:      0x%03X %-20s      ║\n",
-                    can_id, rules[i].system);
-                printf("  ║ Sistema: %-30s  ║\n", rules[i].description);
-                printf("  ║ Valor:   %3d  Rango seguro: [%d-%d]       ║\n",
-                    val, rules[i].min_data, rules[i].max_data);
-                printf("  ║ POSIBLE INYECCION DE COMANDO MALICIOSO   ║\n");
-                printf("  ╚══════════════════════════════════════════╝\n");
-
-                char details[512];
-                snprintf(details, sizeof(details),
-                    "can_id=0x%03X sistema=%s valor=%d rango=[%d-%d]",
-                    can_id, rules[i].system, val,
-                    rules[i].min_data, rules[i].max_data);
-                log_ledger("CAN_ANOMALY_DETECTED", details);
-                return 0; // anomalia
-            }
-            return 1; // ok
-        }
+static int analyze_frame(
+    uint32_t can_id,
+    const uint8_t *data,
+    size_t dlc)
+{
+    if (data == NULL || dlc == 0U || dlc > 8U) {
+        return -2;
     }
-    // ID no reconocido - posible ataque de inyeccion
+
+    /*
+     * Reject impossible classical CAN identifiers.
+     * Extended CAN IDs may use up to 29 bits.
+     */
+    if (can_id > 0x1FFFFFFFU) {
+        return -2;
+    }
+
+    for (size_t i = 0U; i < rule_count; i++) {
+
+        if (rules[i].can_id != can_id) {
+            continue;
+        }
+
+        uint8_t value = data[0];
+
+        if (value < rules[i].min_data ||
+            value > rules[i].max_data) {
+
+            printf(
+                "\n  ╔══════════════════════════════════════════╗\n"
+                "  ║ ANOMALIA CAN DETECTADA                  ║\n"
+                "  ║ ID:      0x%08X                         ║\n"
+                "  ║ Sistema: %-30s ║\n"
+                "  ║ Regla:   %-30s ║\n"
+                "  ║ Valor:   %3u  Rango seguro: [%u-%u]     ║\n"
+                "  ║ POSIBLE INYECCION / ANOMALIA            ║\n"
+                "  ╚══════════════════════════════════════════╝\n",
+                can_id,
+                rules[i].system,
+                rules[i].description,
+                (unsigned int)value,
+                (unsigned int)rules[i].min_data,
+                (unsigned int)rules[i].max_data);
+
+            char details[512];
+
+            (void)snprintf(
+                details,
+                sizeof(details),
+                "can_id=0x%08X sistema=%s valor=%u rango=[%u-%u] dlc=%zu",
+                can_id,
+                rules[i].system,
+                (unsigned int)value,
+                (unsigned int)rules[i].min_data,
+                (unsigned int)rules[i].max_data,
+                dlc);
+
+            log_ledger(
+                "CAN_ANOMALY_DETECTED",
+                details);
+
+            return 0;
+        }
+
+        return 1;
+    }
+
     char details[256];
-    snprintf(details, sizeof(details),
-        "can_id=0x%03X dlc=%d DESCONOCIDO", can_id, dlc);
-    log_ledger("CAN_UNKNOWN_ID", details);
-    return -1; // desconocido
+
+    (void)snprintf(
+        details,
+        sizeof(details),
+        "can_id=0x%08X dlc=%zu DESCONOCIDO",
+        can_id,
+        dlc);
+
+    log_ledger(
+        "CAN_UNKNOWN_ID",
+        details);
+
+    return -1;
 }
 
-void simulate_attack_demo() {
-    printf("\n=== CHRONO CAN GUARD - Demo de Proteccion Vehicular ===\n");
-    printf("Simulando trafico CAN de un vehiculo en movimiento...\n\n");
+static void simulate_attack_demo(void)
+{
+    printf(
+        "\n=== CHRONO CAN GUARD - DEMO DEFENSIVA ===\n"
+        "Simulacion de trafico CAN autorizado para pruebas.\n\n");
 
-    // Trafico normal
+    uint8_t data_normal[8] = {
+        0x50, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00
+    };
+
     printf("[*] Trafico CAN normal:\n");
-    uint8_t data_normal[8] = {0x50, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     printf("  [OK] 0x0C0 Motor RPM: 2000 rpm - normal\n");
-    log_ledger("CAN_FRAME_OK", "id=0x0C0 sistema=engine rpm=2000");
 
-    uint8_t data_brake[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    (void)analyze_frame(
+        0x0C0U,
+        data_normal,
+        sizeof(data_normal));
+
+    uint8_t data_brake[8] = {
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00
+    };
+
     printf("  [OK] 0x1A0 Frenos: sin presion - normal\n");
-    log_ledger("CAN_FRAME_OK", "id=0x1A0 sistema=brake presion=0");
+
+    (void)analyze_frame(
+        0x1A0U,
+        data_brake,
+        sizeof(data_brake));
 
     printf("  [OK] 0x002 Velocidad: 80 km/h - normal\n\n");
-    log_ledger("CAN_FRAME_OK", "id=0x002 sistema=speed vel=80");
 
-    // Simulacion del ataque tipo Miller & Valasek
-    printf("[*] ATAQUE DETECTADO - Inyeccion tipo Miller & Valasek:\n");
+    uint8_t attack_brake[8] = {
+        0xFF, 0xFF, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00
+    };
 
-    uint8_t attack_brake[8] = {0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint32_t brake_id = 0x1A0;
-    analyze_frame(brake_id, attack_brake, 8);
+    printf(
+        "[*] Evento CAN anomalo controlado para validacion:\n");
 
-    uint8_t attack_steer[8] = {0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint32_t steer_id = 0x0E0;
-    printf("\n  ╔══════════════════════════════════════════╗\n");
-    printf("  ║ ANOMALIA CAN DETECTADA                    ║\n");
-    printf("  ║ ID:      0x0E0 steering                   ║\n");
-    printf("  ║ Sistema: Control de Direccion              ║\n");
-    printf("  ║ Valor:   128  Rango seguro: [0-10]        ║\n");
-    printf("  ║ POSIBLE INYECCION DE COMANDO MALICIOSO   ║\n");
-    printf("  ╚══════════════════════════════════════════╝\n");
-    log_ledger("CAN_ANOMALY_DETECTED",
-        "can_id=0x0E0 sistema=steering valor=128 ATAQUE_BLOQUEADO");
+    int result = analyze_frame(
+        0x1A0U,
+        attack_brake,
+        sizeof(attack_brake));
 
-    printf("\n[!!!] ATAQUE BLOQUEADO - Vehiculo protegido\n");
-    printf("[✓]  Evento registrado en Ledger forense\n");
-    printf("[✓]  Sin este modulo: el atacante controlaria frenos y\n");
-    printf("     direccion remotamente mientras el vehiculo esta en\n");
-    printf("     movimiento (caso real: Jeep Cherokee 2015, I-64 Missouri)\n\n");
+    if (result == 0) {
+        printf(
+            "\n[!] ANOMALIA REGISTRADA\n"
+            "[✓] Evento enviado al Ledger forense\n"
+            "[✓] Este modulo no ejecuta comandos sobre el vehiculo\n");
+    }
+
+    printf(
+        "\n[INFO] La demo no transmite frames CAN reales.\n"
+        "[INFO] La integracion SocketCAN requiere hardware autorizado.\n\n");
 }
 
-int main(int argc, char *argv[]) {
+static void show_status(void)
+{
+    printf(
+        "=== ChronoOS CAN Guard Status ===\n"
+        "Reglas CAN cargadas: %zu\n"
+        "Modo: monitor defensivo\n"
+        "Shell execution: DISABLED\n"
+        "Automatic vehicle control: DISABLED\n",
+        rule_count);
+}
+
+int main(int argc, char *argv[])
+{
     load_whitelist();
 
     if (argc < 2 || strcmp(argv[1], "demo") == 0) {
         simulate_attack_demo();
-    } else if (strcmp(argv[1], "status") == 0) {
-        printf("=== ChronoOS CAN Guard Status ===\n");
-        printf("Reglas CAN cargadas: %d\n", rule_count);
-        printf("Modo: %s\n", argc > 2 ? argv[2] : "simulacion");
+        return 0;
     }
-    return 0;
+
+    if (strcmp(argv[1], "status") == 0) {
+        show_status();
+        return 0;
+    }
+
+    fprintf(
+        stderr,
+        "[!] Argumento no reconocido: %s\n",
+        argv[1]);
+
+    return 1;
 }

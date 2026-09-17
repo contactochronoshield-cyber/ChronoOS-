@@ -1,4 +1,5 @@
 /**
+#include "common/chrono_shell_guard.h"
  * ChronoOS - TPM 2.0 Integration Layer
  * 
  * Conecta ChronoOS con el TPM 2.0 del hardware (Beelink N100 ya lo trae
@@ -36,12 +37,12 @@ void log_ledger(const char *type, const char *details) {
     snprintf(cmd, sizeof(cmd),
         "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null",
         type, details);
-    system(cmd);
+    chrono_system_disabled(cmd);
 }
 
 int tpm_available() {
     // Verificar si hay TPM real disponible
-    return system("tpm2_getrandom 1 > /dev/null 2>&1") == 0;
+    return chrono_system_disabled("tpm2_getrandom 1 > /dev/null 2>&1") == 0;
 }
 
 // Genera entropia verdadera desde el TPM (mejor que /dev/urandom)
@@ -52,7 +53,7 @@ void tpm_get_random(int bytes) {
         "tpm2_getrandom %d --hex 2>/dev/null || "
         "head -c %d /dev/urandom | xxd -p",
         bytes, bytes);
-    FILE *f = popen(cmd, "r");
+    FILE *f = chrono_popen_disabled(cmd, "r");
     if (f) {
         char buf[1024] = {0};
         fread(buf, 1, sizeof(buf)-1, f);
@@ -81,7 +82,7 @@ void tpm_seal_master_key() {
     }
 
     // Crear politica TPM basada en PCRs actuales
-    system("tpm2_createpolicy --policy-pcr --pcr-list sha256:0,1,7 "
+    chrono_system_disabled("tpm2_createpolicy --policy-pcr --pcr-list sha256:0,1,7 "
            "--policy /tmp/chrono_tpm_policy.bin 2>/dev/null");
 
     // Sellar la llave maestra al TPM con esa politica
@@ -96,7 +97,7 @@ void tpm_seal_master_key() {
         "-u /tmp/chrono_tpm_sealed.pub "
         "-r /tmp/chrono_tpm_sealed.priv "
         "-n /tmp/chrono_tpm_sealed.name 2>/dev/null");
-    system(cmd);
+    chrono_system_disabled(cmd);
 
     printf("[✓] Llave sellada al hardware TPM\n");
     printf("[✓] La llave solo se puede usar si el sistema arranco\n");
@@ -106,12 +107,12 @@ void tpm_seal_master_key() {
 }
 
 // Medir el estado actual del sistema y registrarlo en el TPM
-void tpm_measure_system() {
+void tpm_measure_chrono_system_disabled() {
     printf("[TPM] Midiendo estado del sistema...\n");
 
     if (!tpm_available()) {
         printf("[i] TPM no disponible - usando atestacion por software\n");
-        system("./bin/chrono-attest-verify 2>/dev/null || "
+        chrono_system_disabled("./bin/chrono-attest-verify 2>/dev/null || "
                "echo '[i] Atestacion de software como fallback'");
         log_ledger("TPM_MEASURE_SIMULATED", "software_attestation_fallback");
         return;
@@ -119,10 +120,10 @@ void tpm_measure_system() {
 
     // Leer los PCRs actuales del TPM (mediciones del boot)
     printf("[TPM] Valores PCR actuales (mediciones del hardware):\n");
-    system("tpm2_pcrread sha256:0,1,7 2>/dev/null");
+    chrono_system_disabled("tpm2_pcrread sha256:0,1,7 2>/dev/null");
 
     // Extender un PCR con el hash de nuestros binarios criticos
-    system("sha256sum ./bin/chrono-core ./bin/chrono-panic "
+    chrono_system_disabled("sha256sum ./bin/chrono-core ./bin/chrono-panic "
            "./bin/chrono-ledger 2>/dev/null | "
            "tpm2_pcrevent sha256:8 2>/dev/null");
 
@@ -148,10 +149,10 @@ void tpm_remote_attestation() {
     }
 
     // Generar nonce aleatorio para la atestacion (evita ataques de replay)
-    system("tpm2_getrandom 32 --hex > /tmp/chrono_nonce.hex 2>/dev/null");
+    chrono_system_disabled("tpm2_getrandom 32 --hex > /tmp/chrono_nonce.hex 2>/dev/null");
 
     // Crear cita TPM (quote) firmada por la llave de atestacion del chip
-    system("tpm2_quote -c 0x81000002 -l sha256:0,1,7 "
+    chrono_system_disabled("tpm2_quote -c 0x81000002 -l sha256:0,1,7 "
            "-q $(cat /tmp/chrono_nonce.hex) "
            "-m /tmp/chrono_quote.msg "
            "-s /tmp/chrono_quote.sig "
@@ -174,7 +175,7 @@ void tpm_panic_integration() {
     }
 
     // Eliminar el objeto sellado del TPM - irrecuperable
-    system("tpm2_evictcontrol -C o -c 0x81000001 2>/dev/null");
+    chrono_system_disabled("tpm2_evictcontrol -C o -c 0x81000001 2>/dev/null");
     printf("[!!!] Llave eliminada del TPM - IRRECUPERABLE\n");
     printf("[!!!] Ni con acceso fisico al disco se puede recuperar\n");
     log_ledger("TPM_KEY_EVICTED", "hardware_key_permanently_destroyed");
@@ -201,7 +202,7 @@ int main(int argc, char *argv[]) {
     else if (strcmp(argv[1], "seal") == 0)
         tpm_seal_master_key();
     else if (strcmp(argv[1], "measure") == 0)
-        tpm_measure_system();
+        tpm_measure_chrono_system_disabled();
     else if (strcmp(argv[1], "attest") == 0)
         tpm_remote_attestation();
     else if (strcmp(argv[1], "panic") == 0)

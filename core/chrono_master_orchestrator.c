@@ -1,3 +1,4 @@
+#include "common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]) {
             return 1;
         } else if (strcmp(argv[1], "--power-check") == 0) {
             printf("[ORCHESTRATOR] Ejecutando sondeo de energía...\n");
-            system("./build/chrono_power_shield");
+            chrono_system_disabled("./build/chrono_power_shield");
             return 0;
         }
     }

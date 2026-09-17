@@ -1,3 +1,4 @@
+#include "../core/common/chrono_shell_guard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,14 +11,14 @@
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         printf("[*] Iniciando auditoría de sockets y descriptores de archivo locales...\n");
-        system("cat /proc/net/tcp 2>/dev/null || echo 'No tcp proc access'");
+        chrono_system_disabled("cat /proc/net/tcp 2>/dev/null || echo 'No tcp proc access'");
         return 0;
     }
     char *interface = argv[1];
     int sock_raw = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     if (sock_raw < 0) {
         perror("[!] Error crítico: No se pudo abrir el socket raw");
-        system("ip route show");
+        chrono_system_disabled("ip route show");
         return 1;
     }
     printf("[✓] Escuchando tráfico real en la interfaz %s...\n", interface);

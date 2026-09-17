@@ -1,0 +1,15 @@
+core/chrono_panic_protocol.c:18:int forensic_shred(const char *filepath) {
+core/chrono_panic_protocol.c:43:void execute_ssd_crypto_shred(void) {
+core/chrono_panic_protocol.c:82:    execute_ssd_crypto_shred();
+core/chrono_panic_protocol.c:85:    forensic_shred("./crypto_keys/mesh_master.key");
+core/chrono_panic_protocol.c:86:    forensic_shred("./config/.panic_trigger");
+core/chrono_panic_protocol.c:91:    int sysrq = open("/proc/sysrq-trigger", O_WRONLY);
+core/chrono_panic_protocol.c:96:        system("reboot -f");
+core/chrono_secure_purge.c:18:int forensic_shred_file(const char *filepath) {
+core/chrono_secure_purge.c:100:            if (forensic_shred_file(target_keys[i]) == 0) {
+core/engine/chrono_core.c:3: * Cifrado real AES-256-GCM para bovedas (crypto-shredding real).
+core/network5g/chrono_5g_manager.c:408: * No shell and no broad "pkill -f" operation.
+core/attestation/chrono_provable_destruction.c:136:    system("rm -rf ./security/vaults/*");
+core/attestation/chrono_provable_destruction.c:141:    system("pkill -f open5gs 2>/dev/null; systemctl stop open5gs-* 2>/dev/null");
+core/attestation/chrono_provable_destruction.c:146:    system("rm -f ./security/auth/device_identity.json 2>/dev/null");
+core/attestation/chrono_provable_destruction.c:192:    system("echo c > /proc/sysrq-trigger 2>/dev/null || reboot -f 2>/dev/null || poweroff -f 2>/dev/null");
