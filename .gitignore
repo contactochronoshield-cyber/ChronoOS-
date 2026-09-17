@@ -30,3 +30,4 @@ security/auth/*
 
 # Termux/editor temporary files
 *~
+sentinel/sovereign/state/security-state

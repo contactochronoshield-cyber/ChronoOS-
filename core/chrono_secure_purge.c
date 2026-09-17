@@ -91,12 +91,11 @@ void execute_system_panic_purge(void) {
 
     // 2. Destrucción forense de archivos críticos y bóvedas
     const char *target_keys[] = {
-        "./crypto_keys/mesh_master.key",
-        "./crypto_keys/master.key",
+        "./security/auth/master.key",
         "./config/.panic_trigger"
     };
 
-    for (int i = 0; i < 3; i++) {
+    for (size_t i = 0; i < sizeof(target_keys) / sizeof(target_keys[0]); i++) {
         if (access(target_keys[i], F_OK) == 0) {
             if (forensic_shred_file(target_keys[i]) == 0) {
                 printf("[PURGE] Archivo destruido forensemente: %s\n", target_keys[i]);

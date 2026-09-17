@@ -59,7 +59,7 @@ void execute_ssd_crypto_shred(void) {
         printf("[SSD-PURGE] Cabecera de cifrado destruida con éxito. Datos en SSD irrecuperables.\n");
     } else {
         // Fallback: destrucción de claves simétricas locales de bóveda
-        system("dd if=/dev/urandom of=./crypto_keys/master.key bs=1k count=1024 2>/dev/null || true");
+        system("dd if=/dev/urandom of=./security/auth/master.key bs=1 count=32 conv=notrunc 2>/dev/null || true");
     }
 }
 

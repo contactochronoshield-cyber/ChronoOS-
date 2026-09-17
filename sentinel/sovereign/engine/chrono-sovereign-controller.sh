@@ -65,15 +65,22 @@ run_component \
     "ANTI-PERSISTENCE GUARD" \
     "$CHRONO_ROOT/sentinel/sovereign/engine/chrono-anti-persistence.sh"
 
+run_component \
+    "SENSOR GUARD" \
+    "$CHRONO_ROOT/sentinel/sovereign/sensors/chrono-sensor-guard.sh"
+
 printf '\n===== SECURITY STATUS =====\n'
 printf '%s\n' "Sovereignty Layer: ACTIVE"
 printf '%s\n' "Process monitoring: ACTIVE"
 printf '%s\n' "Network monitoring: ACTIVE"
 printf '%s\n' "Integrity monitoring: ACTIVE"
 printf '%s\n' "Anti-persistence monitoring: ACTIVE"
+printf '%s\n' "Sensor access monitoring: ACTIVE"
 printf '%s\n' "Forensic logging: ACTIVE"
 printf '%s\n' "Automatic blocking: DISABLED"
 printf '%s\n' "Network isolation: READY"
+printf '%s\n' "Human security policy authority: ACTIVE"
+printf '%s\n' "AI system authority: DISABLED"
 
 log "CONTROLLER_COMPLETE"
 
