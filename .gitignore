@@ -53,3 +53,9 @@ sentinel/sovereign/state/attribution-state
 
 # ChronoOS Sentinel generated attribution reports
 sentinel/sovereign/reports/attribution/*.txt
+
+# ChronoOS Sentinel evidence - NEVER commit incident evidence
+sentinel/sovereign/evidence/acquisition/*
+sentinel/sovereign/evidence/hashes/*
+sentinel/sovereign/evidence/manifests/*
+sentinel/sovereign/evidence/chain-of-custody/*
