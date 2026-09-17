@@ -63,3 +63,10 @@ sentinel/sovereign/evidence/chain-of-custody/*
 # Chrono Telecom Threat Observatory runtime
 sentinel/sovereign/reports/telecom/*
 sentinel/sovereign/state/telecom-threat-state
+
+# Chrono Telecom observed test events
+sentinel/sovereign/telecom/events/observed/OBS-TEST-*.conf
+
+# Chrono Telecom correlation runtime
+sentinel/sovereign/reports/telecom/telecom-correlation-report.txt
+sentinel/sovereign/state/telecom-correlation-state
