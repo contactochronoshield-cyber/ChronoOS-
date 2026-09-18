@@ -6,7 +6,7 @@ BIN_DIR := $(ROOT)/bin
 
 CFLAGS ?= -O2 -Wall -Wextra -I$(ROOT)/core
 
-.PHONY: all build check test clean antenna isp
+.PHONY: all build check test clean antenna isp cumbia assurance cnem
 
 all: build
 
@@ -71,6 +71,10 @@ build:
 	@test -f core/assurance/test_chrono_assurance.c || { echo "[FAIL] core/assurance/test_chrono_assurance.c ausente"; exit 1; }
 	$(CC) $(CFLAGS) core/assurance/chrono_assurance.c core/assurance/test_chrono_assurance.c -o "$(BIN_DIR)/chrono-assurance"
 
+	@test -f core/cnem/chrono_cnem.c || { echo "[FAIL] core/cnem/chrono_cnem.c ausente"; exit 1; }
+	@test -f core/cnem/test_chrono_cnem.c || { echo "[FAIL] core/cnem/test_chrono_cnem.c ausente"; exit 1; }
+	$(CC) $(CFLAGS) core/cnem/chrono_cnem.c core/cnem/test_chrono_cnem.c -o "$(BIN_DIR)/chrono-cnem"
+
 	@echo "[OK] Compilacion completada"
 
 check:
@@ -101,6 +105,11 @@ check:
 	@test -f core/assurance/test_chrono_assurance.c || { echo "[FAIL] test_chrono_assurance.c"; exit 1; }
 	@test -x core/assurance/test_chrono_assurance.sh || { echo "[FAIL] test_chrono_assurance.sh"; exit 1; }
 
+	@test -f core/cnem/chrono_cnem.c || { echo "[FAIL] core/cnem/chrono_cnem.c"; exit 1; }
+	@test -f core/cnem/chrono_cnem.h || { echo "[FAIL] core/cnem/chrono_cnem.h"; exit 1; }
+	@test -f core/cnem/test_chrono_cnem.c || { echo "[FAIL] test_chrono_cnem.c"; exit 1; }
+	@test -x core/cnem/test_chrono_cnem.sh || { echo "[FAIL] test_chrono_cnem.sh"; exit 1; }
+
 	@test -f sentinel/sovereign/tests/test_sentinel.sh || { echo "[FAIL] test_sentinel.sh"; exit 1; }
 	@test -f sentinel/sovereign/response/threat_response.sh || { echo "[FAIL] threat_response.sh"; exit 1; }
 
@@ -113,6 +122,7 @@ test: check build
 	@cd "$(ROOT)" && bash core/isp/test_chrono_isp.sh
 	@cd "$(ROOT)" && bash core/cumbia/test_chrono_cumbia.sh
 	@cd "$(ROOT)" && bash core/assurance/test_chrono_assurance.sh
+	@cd "$(ROOT)" && bash core/cnem/test_chrono_cnem.sh
 	@echo "[OK] Todos los tests completados"
 
 antenna: build
@@ -135,6 +145,11 @@ assurance: build
 	@./bin/chrono-assurance --self-test
 	@echo "[OK] Chrono Assurance Engine operativo"
 
+
+cnem: build
+	@echo "[*] Ejecutando Chrono Network Event Model..."
+	@./bin/chrono-cnem --self-test
+	@echo "[OK] Chrono Network Event Model operativo"
 clean:
 	@echo "[*] Limpiando artefactos..."
 	@rm -rf "$(BUILD_DIR)"
@@ -148,4 +163,5 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-isp"
 	@rm -f "$(BIN_DIR)/chrono-cumbia"
 	@rm -f "$(BIN_DIR)/chrono-assurance"
+	@rm -f "$(BIN_DIR)/chrono-cnem"
 	@echo "[OK] Limpieza completada"
