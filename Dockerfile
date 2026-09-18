@@ -1,20 +1,32 @@
-FROM alpine:latest
-LABEL maintainer="ChronoShield Networks <contactochronoshield@gmail.com>"
-LABEL description="ChronoOS Modular POSIX Environment & Security Suite"
+FROM ubuntu:24.04
 
-RUN apk update && apk add --no-cache \
-    bash \
-    git \
-    openssl \
-    make \
-    gcc \
-    musl-dev \
-    coreutils \
-    curl \
-    ncurses
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y \
+        bash \
+        build-essential \
+        clang \
+        gcc \
+        make \
+        git \
+        curl \
+        openssl \
+        python3 \
+        python3-pip \
+        shellcheck \
+        qemu-system-aarch64 \
+        qemu-user-static \
+        file \
+        ca-certificates \
+        coreutils \
+        ncurses-bin && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . /app
-RUN chmod +x *.sh security/*.sh .chrono-ui/*.sh 2>/dev/null || true
 
-CMD ["/bin/bash", "./install.sh"]
+COPY . /app
+
+RUN find . -name "*.sh" -not -path "./.git/*" -exec chmod +x {} \; || true
+
+CMD ["make", "check"]

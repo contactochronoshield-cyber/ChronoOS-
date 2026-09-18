@@ -1,4 +1,4 @@
-name: ChronoOS CI Lint & Test
+name: ChronoOS CI
 
 on:
   push:
@@ -6,15 +6,99 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
-  lint-shell:
+  shellcheck:
+    name: ShellCheck
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run ShellCheck on Subsystems
+      - name: Install ShellCheck
         run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck
-          find . -name "*.sh" -not -path "./.git/*" -exec shellcheck {} +
-        continue-on-error: true
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          find . \
+            -name "*.sh" \
+            -not -path "./.git/*" \
+            -print0 |
+          xargs -0 -r shellcheck
+
+  syntax:
+    name: Shell Syntax
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Shell Syntax
+        shell: bash
+        run: |
+          set -e
+
+          find . \
+            -name "*.sh" \
+            -not -path "./.git/*" \
+            -print0 |
+          while IFS= read -r -d '' script; do
+            bash -n "$script"
+          done
+
+  sentinel:
+    name: Sentinel Security Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Sentinel Threat Engine
+        run: |
+          test -x sentinel/sovereign/engine/chrono-threat-engine.sh
+
+      - name: Check Behavior Correlator
+        run: |
+          test -x sentinel/sovereign/engine/chrono-behavior-correlator.sh
+
+      - name: Check Security Structure
+        run: |
+          test -d sentinel/sovereign/threats
+          test -d sentinel/sovereign/response
+          test -d sentinel/sovereign/tests
+
+  build:
+    name: Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc \
+            make \
+            file
+
+      - name: Run Make Check
+        run: |
+          make check
+
+      - name: Run Make Test
+        run: |
+          make test
+
+      - name: Run Make Build
+        run: |
+          make build
