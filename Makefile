@@ -64,6 +64,9 @@ build:
 	@test -f core/isp/chrono_isp.c || { echo "[FAIL] core/isp/chrono_isp.c ausente"; exit 1; }
 	$(CC) $(CFLAGS) core/isp/chrono_isp.c -o "$(BIN_DIR)/chrono-isp"
 
+	@test -f core/cumbia/chrono_cumbia.c || { echo "[FAIL] core/cumbia/chrono_cumbia.c ausente"; exit 1; }
+	$(CC) $(CFLAGS) core/cumbia/chrono_cumbia.c -o "$(BIN_DIR)/chrono-cumbia"
+
 	@echo "[OK] Compilacion completada"
 
 check:
@@ -85,6 +88,10 @@ check:
 	@test -f core/isp/chrono_isp.h || { echo "[FAIL] core/isp/chrono_isp.h"; exit 1; }
 	@test -x core/isp/test_chrono_isp.sh || { echo "[FAIL] test_chrono_isp.sh"; exit 1; }
 
+	@test -f core/cumbia/chrono_cumbia.c || { echo "[FAIL] core/cumbia/chrono_cumbia.c"; exit 1; }
+	@test -f core/cumbia/chrono_cumbia.h || { echo "[FAIL] core/cumbia/chrono_cumbia.h"; exit 1; }
+	@test -x core/cumbia/test_chrono_cumbia.sh || { echo "[FAIL] test_chrono_cumbia.sh"; exit 1; }
+
 	@test -f sentinel/sovereign/tests/test_sentinel.sh || { echo "[FAIL] test_sentinel.sh"; exit 1; }
 	@test -f sentinel/sovereign/response/threat_response.sh || { echo "[FAIL] threat_response.sh"; exit 1; }
 
@@ -95,6 +102,7 @@ test: check build
 	@cd "$(ROOT)" && bash sentinel/sovereign/tests/test_sentinel.sh
 	@cd "$(ROOT)" && bash core/antenna/test_chrono_antenna.sh
 	@cd "$(ROOT)" && bash core/isp/test_chrono_isp.sh
+	@cd "$(ROOT)" && bash core/cumbia/test_chrono_cumbia.sh
 	@echo "[OK] Todos los tests completados"
 
 antenna: build
@@ -107,6 +115,11 @@ isp: build
 	@./bin/chrono-isp --self-test
 	@echo "[OK] Chrono ISP Intelligence operativo"
 
+cumbia: build
+	@echo "[*] Ejecutando Cumbia..."
+	@./bin/chrono-cumbia --self-test
+	@echo "[OK] Cumbia operativo"
+
 clean:
 	@echo "[*] Limpiando artefactos..."
 	@rm -rf "$(BUILD_DIR)"
@@ -118,4 +131,5 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-tpm"
 	@rm -f "$(BIN_DIR)/chrono-antenna"
 	@rm -f "$(BIN_DIR)/chrono-isp"
+	@rm -f "$(BIN_DIR)/chrono-cumbia"
 	@echo "[OK] Limpieza completada"
