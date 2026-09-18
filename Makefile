@@ -67,6 +67,10 @@ build:
 	@test -f core/cumbia/chrono_cumbia.c || { echo "[FAIL] core/cumbia/chrono_cumbia.c ausente"; exit 1; }
 	$(CC) $(CFLAGS) core/cumbia/chrono_cumbia.c -o "$(BIN_DIR)/chrono-cumbia"
 
+	@test -f core/assurance/chrono_assurance.c || { echo "[FAIL] core/assurance/chrono_assurance.c ausente"; exit 1; }
+	@test -f core/assurance/test_chrono_assurance.c || { echo "[FAIL] core/assurance/test_chrono_assurance.c ausente"; exit 1; }
+	$(CC) $(CFLAGS) core/assurance/chrono_assurance.c core/assurance/test_chrono_assurance.c -o "$(BIN_DIR)/chrono-assurance"
+
 	@echo "[OK] Compilacion completada"
 
 check:
@@ -92,6 +96,11 @@ check:
 	@test -f core/cumbia/chrono_cumbia.h || { echo "[FAIL] core/cumbia/chrono_cumbia.h"; exit 1; }
 	@test -x core/cumbia/test_chrono_cumbia.sh || { echo "[FAIL] test_chrono_cumbia.sh"; exit 1; }
 
+	@test -f core/assurance/chrono_assurance.c || { echo "[FAIL] core/assurance/chrono_assurance.c"; exit 1; }
+	@test -f core/assurance/chrono_assurance.h || { echo "[FAIL] core/assurance/chrono_assurance.h"; exit 1; }
+	@test -f core/assurance/test_chrono_assurance.c || { echo "[FAIL] test_chrono_assurance.c"; exit 1; }
+	@test -x core/assurance/test_chrono_assurance.sh || { echo "[FAIL] test_chrono_assurance.sh"; exit 1; }
+
 	@test -f sentinel/sovereign/tests/test_sentinel.sh || { echo "[FAIL] test_sentinel.sh"; exit 1; }
 	@test -f sentinel/sovereign/response/threat_response.sh || { echo "[FAIL] threat_response.sh"; exit 1; }
 
@@ -103,6 +112,7 @@ test: check build
 	@cd "$(ROOT)" && bash core/antenna/test_chrono_antenna.sh
 	@cd "$(ROOT)" && bash core/isp/test_chrono_isp.sh
 	@cd "$(ROOT)" && bash core/cumbia/test_chrono_cumbia.sh
+	@cd "$(ROOT)" && bash core/assurance/test_chrono_assurance.sh
 	@echo "[OK] Todos los tests completados"
 
 antenna: build
@@ -120,6 +130,11 @@ cumbia: build
 	@./bin/chrono-cumbia --self-test
 	@echo "[OK] Cumbia operativo"
 
+assurance: build
+	@echo "[*] Ejecutando Chrono Assurance Engine..."
+	@./bin/chrono-assurance --self-test
+	@echo "[OK] Chrono Assurance Engine operativo"
+
 clean:
 	@echo "[*] Limpiando artefactos..."
 	@rm -rf "$(BUILD_DIR)"
@@ -132,4 +147,5 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-antenna"
 	@rm -f "$(BIN_DIR)/chrono-isp"
 	@rm -f "$(BIN_DIR)/chrono-cumbia"
+	@rm -f "$(BIN_DIR)/chrono-assurance"
 	@echo "[OK] Limpieza completada"
