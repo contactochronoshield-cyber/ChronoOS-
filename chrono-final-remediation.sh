@@ -202,13 +202,12 @@ if [ -f core/chrono_ledger.c ]; then
         pass "Ledger sin system/popen"
     fi
 
-    gcc -O2 -Wall -Wextra -Wpedantic \
+    if gcc -O2 -Wall -Wextra -Wpedantic \
         -std=c11 \
         core/chrono_ledger.c \
         -o build/chrono-ledger \
         -lcrypto
-
-    if [ $? -eq 0 ]; then
+    then
         cp build/chrono-ledger bin/chrono-ledger
         chmod 700 bin/chrono-ledger
         pass "Ledger compilado"
@@ -244,12 +243,11 @@ if [ -f core/network5g/chrono_5g_manager.c ]; then
         pass "5G manager sin system/popen"
     fi
 
-    gcc -Wall -Wextra -Wpedantic \
+    if gcc -Wall -Wextra -Wpedantic \
         -std=c11 \
         core/network5g/chrono_5g_manager.c \
         -o build/chrono-5g-manager
-
-    if [ $? -eq 0 ]; then
+    then
         pass "5G manager compila"
     else
         fail "5G manager no compila"
@@ -270,13 +268,12 @@ if [ -f core/vehicle/chrono_can_guard.c ]; then
     fi
 
     if [ -f core/common/chrono_exec.c ]; then
-        gcc -O2 -Wall -Wextra -Wpedantic \
+        if gcc -O2 -Wall -Wextra -Wpedantic \
             -std=c11 \
             core/vehicle/chrono_can_guard.c \
             core/common/chrono_exec.c \
             -o build/chrono_can_guard
-
-        if [ $? -eq 0 ]; then
+        then
             pass "CAN Guard compila"
         else
             fail "CAN Guard no compila"
@@ -477,12 +474,11 @@ C_ERRORS=0
 while IFS= read -r f; do
     [ -z "$f" ] && continue
 
-    gcc -fsyntax-only \
+    if ! gcc -fsyntax-only \
         -std=c11 \
         -Wall -Wextra \
         "$f" >/dev/null 2>&1
-
-    if [ $? -ne 0 ]; then
+    then
         echo "[WARN] C syntax: $f"
         C_ERRORS=$((C_ERRORS+1))
     fi
@@ -503,9 +499,8 @@ fi
 PY_ERRORS=0
 
 while IFS= read -r f; do
-    python3 -m py_compile "$f" >/dev/null 2>&1
-
-    if [ $? -ne 0 ]; then
+    if ! python3 -m py_compile "$f" >/dev/null 2>&1
+    then
         echo "[WARN] Python syntax: $f"
         PY_ERRORS=$((PY_ERRORS+1))
     fi
@@ -537,9 +532,7 @@ fi
 echo
 echo "===== 19. GIT DIFF CHECK ====="
 
-git diff --check
-
-if [ $? -eq 0 ]; then
+if git diff --check; then
     pass "git diff --check"
 else
     fail "git diff --check fallo"

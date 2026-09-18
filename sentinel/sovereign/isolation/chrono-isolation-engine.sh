@@ -2,6 +2,7 @@
 
 set -u
 
+# shellcheck disable=SC1007
 CHRONO_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)"
 LOGDIR="$CHRONO_ROOT/sentinel/sovereign/forensics"
 STATE_DIR="$CHRONO_ROOT/sentinel/sovereign/isolation/state"
@@ -125,7 +126,7 @@ log "SAFETY_POLICY_VERIFIED"
 
 printf '\n%s\n' "===== ISOLATION BACKENDS ====="
 
-if "$ROOT_AVAILABLE" = true && "$IP_AVAILABLE" = true; then
+if [ "$ROOT_AVAILABLE" = true ] && [ "$IP_AVAILABLE" = true ]; then
     printf '%s\n' "Privileged network backend: AVAILABLE"
     log "BACKEND_AVAILABLE | privileged-network"
 else
@@ -134,7 +135,7 @@ else
     log "BACKEND_UNAVAILABLE | privileged-network"
 fi
 
-if "$FIREWALL_AVAILABLE" = true; then
+if [ "$FIREWALL_AVAILABLE" = true ]; then
     printf '%s\n' "Firewall backend: DETECTED"
     log "BACKEND_DETECTED | firewall"
 else

@@ -2,6 +2,7 @@
 set -euo pipefail
 umask 077
 
+# shellcheck disable=SC1007
 CHRONO_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)"
 KEY_FILE="$CHRONO_ROOT/security/auth/master.key"
 

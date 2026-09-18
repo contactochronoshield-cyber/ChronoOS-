@@ -2,6 +2,7 @@
 
 set -u
 
+# shellcheck disable=SC1007
 CHRONO_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)"
 LOGDIR="$CHRONO_ROOT/sentinel/sovereign/forensics"
 LOGFILE="$LOGDIR/process-security.log"
