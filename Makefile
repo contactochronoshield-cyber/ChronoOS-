@@ -5,7 +5,7 @@ ROOT := $(CURDIR)
 BUILD_DIR := $(ROOT)/build
 BIN_DIR := $(ROOT)/bin
 
-.PHONY: all build check test clean
+.PHONY: all build check test clean antenna
 
 all: build
 
@@ -89,3 +89,8 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-context-auth"
 	@rm -f "$(BIN_DIR)/chrono-tpm"
 	@echo "[OK] Limpieza completada"
+
+antenna:
+		@echo "[*] Ejecutando Chrono Antenna Intelligence..."
+		@./bin/chrono-antenna --self-test
+		@echo "[OK] Chrono Antenna Intelligence operativo"
