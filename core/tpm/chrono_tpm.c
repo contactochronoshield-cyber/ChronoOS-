@@ -1,5 +1,6 @@
-/**
 #include "common/chrono_shell_guard.h"
+
+/**
  * ChronoOS - TPM 2.0 Integration Layer
  * 
  * Conecta ChronoOS con el TPM 2.0 del hardware (Beelink N100 ya lo trae
