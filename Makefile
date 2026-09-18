@@ -6,7 +6,7 @@ BIN_DIR := $(ROOT)/bin
 
 CFLAGS ?= -O2 -Wall -Wextra -I$(ROOT)/core
 
-.PHONY: all build check test clean antenna
+.PHONY: all build check test clean antenna isp
 
 all: build
 
@@ -61,6 +61,9 @@ build:
 	@test -f core/antenna/chrono_antenna.c || { echo "[FAIL] core/antenna/chrono_antenna.c ausente"; exit 1; }
 	$(CC) $(CFLAGS) core/antenna/chrono_antenna.c -o "$(BIN_DIR)/chrono-antenna"
 
+	@test -f core/isp/chrono_isp.c || { echo "[FAIL] core/isp/chrono_isp.c ausente"; exit 1; }
+	$(CC) $(CFLAGS) core/isp/chrono_isp.c -o "$(BIN_DIR)/chrono-isp"
+
 	@echo "[OK] Compilacion completada"
 
 check:
@@ -78,6 +81,10 @@ check:
 	@test -f core/antenna/chrono_antenna.h || { echo "[FAIL] core/antenna/chrono_antenna.h"; exit 1; }
 	@test -x core/antenna/test_chrono_antenna.sh || { echo "[FAIL] test_chrono_antenna.sh"; exit 1; }
 
+	@test -f core/isp/chrono_isp.c || { echo "[FAIL] core/isp/chrono_isp.c"; exit 1; }
+	@test -f core/isp/chrono_isp.h || { echo "[FAIL] core/isp/chrono_isp.h"; exit 1; }
+	@test -x core/isp/test_chrono_isp.sh || { echo "[FAIL] test_chrono_isp.sh"; exit 1; }
+
 	@test -f sentinel/sovereign/tests/test_sentinel.sh || { echo "[FAIL] test_sentinel.sh"; exit 1; }
 	@test -f sentinel/sovereign/response/threat_response.sh || { echo "[FAIL] threat_response.sh"; exit 1; }
 
@@ -87,12 +94,18 @@ test: check build
 	@echo "[*] Ejecutando tests..."
 	@cd "$(ROOT)" && bash sentinel/sovereign/tests/test_sentinel.sh
 	@cd "$(ROOT)" && bash core/antenna/test_chrono_antenna.sh
+	@cd "$(ROOT)" && bash core/isp/test_chrono_isp.sh
 	@echo "[OK] Todos los tests completados"
 
 antenna: build
 	@echo "[*] Ejecutando Chrono Antenna Intelligence..."
 	@./bin/chrono-antenna --self-test
 	@echo "[OK] Chrono Antenna Intelligence operativo"
+
+isp: build
+	@echo "[*] Ejecutando Chrono ISP Intelligence..."
+	@./bin/chrono-isp --self-test
+	@echo "[OK] Chrono ISP Intelligence operativo"
 
 clean:
 	@echo "[*] Limpiando artefactos..."
@@ -104,4 +117,5 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-context-auth"
 	@rm -f "$(BIN_DIR)/chrono-tpm"
 	@rm -f "$(BIN_DIR)/chrono-antenna"
+	@rm -f "$(BIN_DIR)/chrono-isp"
 	@echo "[OK] Limpieza completada"
