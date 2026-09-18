@@ -1,9 +1,10 @@
 CC ?= gcc
-CFLAGS ?= -O2 -Wall -Wextra -I$(ROOT)/core
 
 ROOT := $(CURDIR)
 BUILD_DIR := $(ROOT)/build
 BIN_DIR := $(ROOT)/bin
+
+CFLAGS ?= -O2 -Wall -Wextra -I$(ROOT)/core
 
 .PHONY: all build check test clean antenna
 
@@ -57,6 +58,9 @@ build:
 		$(CC) $(CFLAGS) core/chrono_synthetic_life.c -o "$(BUILD_DIR)/chrono_synthetic_life" -lcrypto; \
 	fi
 
+	@test -f core/antenna/chrono_antenna.c || { echo "[FAIL] core/antenna/chrono_antenna.c ausente"; exit 1; }
+	$(CC) $(CFLAGS) core/antenna/chrono_antenna.c -o "$(BIN_DIR)/chrono-antenna"
+
 	@echo "[OK] Compilacion completada"
 
 check:
@@ -70,6 +74,10 @@ check:
 	@test -f core/iot/chrono_iot_engine.c || { echo "[FAIL] core/iot/chrono_iot_engine.c"; exit 1; }
 	@test -f core/vehicle/chrono_can_guard.c || { echo "[FAIL] core/vehicle/chrono_can_guard.c"; exit 1; }
 
+	@test -f core/antenna/chrono_antenna.c || { echo "[FAIL] core/antenna/chrono_antenna.c"; exit 1; }
+	@test -f core/antenna/chrono_antenna.h || { echo "[FAIL] core/antenna/chrono_antenna.h"; exit 1; }
+	@test -x core/antenna/test_chrono_antenna.sh || { echo "[FAIL] test_chrono_antenna.sh"; exit 1; }
+
 	@test -f sentinel/sovereign/tests/test_sentinel.sh || { echo "[FAIL] test_sentinel.sh"; exit 1; }
 	@test -f sentinel/sovereign/response/threat_response.sh || { echo "[FAIL] threat_response.sh"; exit 1; }
 
@@ -77,7 +85,14 @@ check:
 
 test: check build
 	@echo "[*] Ejecutando tests..."
-	@cd "$(ROOT)" && sh sentinel/sovereign/tests/test_sentinel.sh
+	@cd "$(ROOT)" && bash sentinel/sovereign/tests/test_sentinel.sh
+	@cd "$(ROOT)" && bash core/antenna/test_chrono_antenna.sh
+	@echo "[OK] Todos los tests completados"
+
+antenna: build
+	@echo "[*] Ejecutando Chrono Antenna Intelligence..."
+	@./bin/chrono-antenna --self-test
+	@echo "[OK] Chrono Antenna Intelligence operativo"
 
 clean:
 	@echo "[*] Limpiando artefactos..."
@@ -88,9 +103,5 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-can-guard"
 	@rm -f "$(BIN_DIR)/chrono-context-auth"
 	@rm -f "$(BIN_DIR)/chrono-tpm"
+	@rm -f "$(BIN_DIR)/chrono-antenna"
 	@echo "[OK] Limpieza completada"
-
-antenna:
-		@echo "[*] Ejecutando Chrono Antenna Intelligence..."
-		@./bin/chrono-antenna --self-test
-		@echo "[OK] Chrono Antenna Intelligence operativo"
