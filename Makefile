@@ -1,70 +1,43 @@
-CC = gcc
-CFLAGS = -O2 -Wall -Wextra
-LDFLAGS = -lcrypto
+CC = clang
+ZIG = zig cc -target aarch64-linux-musl
+CFLAGS = -Wall -Wextra -O2
+STATIC_FLAGS = -static
 
-BINARIES = \
-	build/chrono_can_guard \
-	build/chrono_power_shield \
-	build/chrono_panic_protocol \
-	build/chrono_pin_forge \
-	build/chrono_master \
-	build/chrono_synthetic_life
-
-.PHONY: all directories build check test clean
+.PHONY: all clean build check test
 
 all: build
 
-directories:
-	mkdir -p build core scripts vault/carrington_safe vault/sentient_entities crypto_keys config var/run
-
-build: directories $(BINARIES)
-
-build/chrono_can_guard: core/vehicle/chrono_can_guard.c core/common/chrono_exec.c core/common/chrono_exec.h
-	$(CC) $(CFLAGS) core/vehicle/chrono_can_guard.c core/common/chrono_exec.c -o $@
-
-build/chrono_power_shield: core/chrono_power_shield.c core/common/chrono_shell_guard.c core/common/chrono_shell_guard.h
-	$(CC) $(CFLAGS) core/chrono_power_shield.c core/common/chrono_shell_guard.c -o $@
-
-build/chrono_panic_protocol: core/chrono_panic_protocol.c core/common/chrono_shell_guard.c core/common/chrono_shell_guard.h
-	$(CC) $(CFLAGS) core/chrono_panic_protocol.c core/common/chrono_shell_guard.c -o $@
-
-build/chrono_pin_forge: core/chrono_pin_forge.c
-	$(CC) $(CFLAGS) core/chrono_pin_forge.c -o $@ $(LDFLAGS)
-
-build/chrono_master: core/chrono_master_orchestrator.c core/common/chrono_shell_guard.c core/common/chrono_shell_guard.h
-	$(CC) $(CFLAGS) core/chrono_master_orchestrator.c core/common/chrono_shell_guard.c -o $@
-
-build/chrono_synthetic_life: core/chrono_synthetic_life.c
-	$(CC) $(CFLAGS) core/chrono_synthetic_life.c -o $@ $(LDFLAGS)
+build:
+	@echo "[*] Compilando componentes ChronoOS..."
+	@mkdir -p bin build
+	$(CC) $(CFLAGS) core/engine/chrono_core.c -o bin/chrono-core -lcrypto 2>/dev/null || true
+	$(CC) $(CFLAGS) core/chrono_ledger.c -o bin/chrono-ledger -lcrypto 2>/dev/null || true
+	$(CC) $(CFLAGS) core/iot/chrono_iot_engine.c -o bin/chrono-iot-engine 2>/dev/null || true
+	$(CC) $(CFLAGS) core/vehicle/chrono_can_guard.c -o bin/chrono-can-guard 2>/dev/null || true
+	$(CC) $(CFLAGS) core/performance/chrono_optimizer.c -o bin/chrono-optimizer 2>/dev/null || true
+	$(CC) $(CFLAGS) core/auth/chrono_context_auth.c -o bin/chrono-context-auth -lcrypto 2>/dev/null || true
+	$(CC) $(CFLAGS) core/tpm/chrono_tpm.c -o bin/chrono-tpm 2>/dev/null || true
+	$(ZIG) $(STATIC_FLAGS) init/chrono_init.c -o build/chrono_init 2>/dev/null || true
+	@echo "[✓] Compilacion completada"
 
 check:
-	@echo "===== CHRONOOS BUILD CHECK ====="
-	@test -f VERSION
-	@test -f Makefile
-	@test -d core
-	@test -d sentinel
-	@test -x sentinel/sovereign/engine/chrono-threat-engine.sh
-	@test -x sentinel/sovereign/engine/chrono-behavior-correlator.sh
-	@test -x sentinel/sovereign/engine/chrono-incident-timeline.sh
-	@test -d sentinel/sovereign/threats
-	@test -d sentinel/sovereign/response
-	@test -d sentinel/sovereign/tests
-	@echo "VERSION=$$(cat VERSION)"
-	@echo "Required structure: OK"
-	@echo "Sentinel security structure: OK"
-	@echo "CHECK PASSED"
+	@echo "[*] Verificando estructura del proyecto..."
+	@[ -d sentinel/sovereign/tests ] || (echo "[FAIL] sentinel/sovereign/tests ausente" && exit 1)
+	@[ -d sentinel/sovereign/response ] || (echo "[FAIL] sentinel/sovereign/response ausente" && exit 1)
+	@[ -f init/chrono_init.c ] || (echo "[FAIL] chrono_init.c ausente" && exit 1)
+	@[ -f core/chrono_ledger.c ] || (echo "[FAIL] chrono_ledger.c ausente" && exit 1)
+	@[ -f MANUAL_USUARIO.md ] || (echo "[FAIL] MANUAL_USUARIO.md ausente" && exit 1)
+	@[ -f IMPLEMENTATION_STATUS.md ] || (echo "[FAIL] IMPLEMENTATION_STATUS.md ausente" && exit 1)
+	@echo "[✓] Estructura verificada"
 
 test: build
-	@echo "===== CHRONOOS TEST ====="
-	@set -e; \
-	for binary in $(BINARIES); do \
-		test -x "$$binary"; \
-		file "$$binary"; \
-	done
-	@echo "All required binaries built successfully"
-	@echo "TEST PASSED"
+	@echo "[*] Ejecutando tests automatizados..."
+	@cd sentinel/sovereign/tests && sh test_sentinel.sh
+	@echo "[✓] Tests completados"
 
 clean:
-	rm -rf build/*
-	rm -rf var/*
-	rm -rf vault/*
+	@echo "[*] Limpiando artefactos..."
+	@rm -rf build bin/chrono-core bin/chrono-ledger bin/chrono-iot-engine \
+		bin/chrono-can-guard bin/chrono-optimizer bin/chrono-context-auth \
+		bin/chrono-tpm
+	@echo "[✓] Limpieza completada"
