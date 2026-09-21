@@ -172,3 +172,8 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-cnem"
 	@rm -f "$(BIN_DIR)/chrono-continuum"
 	@echo "[OK] Limpieza completada"
+
+eagle-test:
+	@echo "[*] Ejecutando Chrono Eagle..."
+	@cd "$(ROOT)" && bash sentinel/sovereign/tests/eagle/test_eagle.sh
+	@echo "[OK] Chrono Eagle operativo"
