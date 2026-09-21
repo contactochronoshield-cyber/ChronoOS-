@@ -14,6 +14,9 @@ build:
 	@echo "[*] Compilando ChronoOS..."
 	@mkdir -p "$(BUILD_DIR)" "$(BIN_DIR)"
 
+	@test -f core/continuum/chrono_continuum.c || { echo "[FAIL] core/continuum/chrono_continuum.c ausente"; exit 1; }
+	@test -f core/continuum/chrono_continuum.h || { echo "[FAIL] core/continuum/chrono_continuum.h ausente"; exit 1; }
+	$(CC) $(CFLAGS) core/continuum/chrono_continuum.c -o "$(BIN_DIR)/chrono-continuum" -lcrypto
 	@test -f core/chrono_ledger.c || { echo "[FAIL] core/chrono_ledger.c ausente"; exit 1; }
 	$(CC) $(CFLAGS) core/chrono_ledger.c -o "$(BIN_DIR)/chrono-ledger" -lcrypto
 
@@ -83,6 +86,8 @@ check:
 	@test -d sentinel/sovereign/tests || { echo "[FAIL] sentinel/sovereign/tests"; exit 1; }
 	@test -d sentinel/sovereign/response || { echo "[FAIL] sentinel/sovereign/response"; exit 1; }
 	@test -f IMPLEMENTATION_STATUS.md || { echo "[FAIL] IMPLEMENTATION_STATUS.md"; exit 1; }
+	@test -f core/continuum/chrono_continuum.c || { echo "[FAIL] core/continuum/chrono_continuum.c"; exit 1; }
+	@test -f core/continuum/chrono_continuum.h || { echo "[FAIL] core/continuum/chrono_continuum.h"; exit 1; }
 
 	@test -f core/chrono_ledger.c || { echo "[FAIL] core/chrono_ledger.c"; exit 1; }
 	@test -f core/iot/chrono_iot_engine.c || { echo "[FAIL] core/iot/chrono_iot_engine.c"; exit 1; }
@@ -117,6 +122,7 @@ check:
 
 test: check build
 	@echo "[*] Ejecutando tests..."
+	@cd "$(ROOT)" && bash sentinel/sovereign/tests/continuum/test_continuum.sh
 	@cd "$(ROOT)" && bash sentinel/sovereign/tests/test_sentinel.sh
 	@cd "$(ROOT)" && bash core/antenna/test_chrono_antenna.sh
 	@cd "$(ROOT)" && bash core/isp/test_chrono_isp.sh
@@ -164,4 +170,5 @@ clean:
 	@rm -f "$(BIN_DIR)/chrono-cumbia"
 	@rm -f "$(BIN_DIR)/chrono-assurance"
 	@rm -f "$(BIN_DIR)/chrono-cnem"
+	@rm -f "$(BIN_DIR)/chrono-continuum"
 	@echo "[OK] Limpieza completada"
