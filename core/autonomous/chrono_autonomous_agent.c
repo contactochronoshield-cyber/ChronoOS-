@@ -20,6 +20,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #define LEDGER_PATH    "/mnt/data/chrono_ledger.log"
 #define AGENT_STATE    "./var/db/agent_state.json"
