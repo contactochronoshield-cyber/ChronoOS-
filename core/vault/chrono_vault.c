@@ -32,21 +32,13 @@
 #define TAG_LEN       16
 #define SALT_LEN      32
 
-// Deriva una clave AES-256 desde una passphrase usando SHA-256 + salt
-// Simple pero efectivo para este caso de uso
+// Deriva una clave AES-256 con PBKDF2-HMAC-SHA256 (600k iteraciones, OWASP).
+// Hace costoso probar passphrases por fuerza bruta.
 void derive_key(const char *passphrase, const unsigned char *salt,
                 unsigned char *key_out) {
-    unsigned char combined[512];
-    size_t pp_len = strlen(passphrase);
-    memcpy(combined, passphrase, pp_len);
-    memcpy(combined + pp_len, salt, SALT_LEN);
-
-    unsigned int len = 0;
-    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
-    EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
-    EVP_DigestUpdate(ctx, combined, pp_len + SALT_LEN);
-    EVP_DigestFinal_ex(ctx, key_out, &len);
-    EVP_MD_CTX_free(ctx);
+    PKCS5_PBKDF2_HMAC(passphrase, (int)strlen(passphrase),
+                      salt, SALT_LEN, 600000, EVP_sha256(),
+                      KEY_LEN, key_out);
 }
 
 int vault_store(const char *filepath, const char *passphrase,
