@@ -193,3 +193,17 @@ Conceptually:
                  Digital Twin
                        |
                     Ledger
+
+---
+
+## ChronoOS 1.3 (in development)
+
+Phases 1-4 of the 1.3 roadmap live in [`chronoos-1.3/`](chronoos-1.3/) as an isolated module, so nothing above changes until it is merged with `cli/chronoctl`. Verified on Android/Termux (aarch64):
+
+- `chrono` CLI with capability and profile detection
+- ChronoD: persistent offline event queue with retrying sync
+- Receiver (`chrono server`) with per-node enrollment and revocation
+- Ed25519 node identity: signed events and batches, server stores public keys only
+- Signed updates with anti-downgrade, unsafe-path rejection and one-level rollback
+
+Not implemented yet: bootable image (phase 5), industrial and HPC profiles (phase 6), transport encryption in the receiver (use a tunnel such as WireGuard), booting from an applied update.
