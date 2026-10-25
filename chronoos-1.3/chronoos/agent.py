@@ -57,6 +57,8 @@ def daemon(action):
         if os.fork() > 0: print("ChronoD iniciado"); return
         HOME.mkdir(parents=True, exist_ok=True)
         os.setsid(); PID.write_text(str(os.getpid()))
+        try: open("/proc/self/comm", "w").write("chronod")
+        except OSError: pass
         signal.signal(signal.SIGTERM, lambda *a: (PID.unlink(missing_ok=True), sys.exit(0)))
         while True:
             sync_once(); time.sleep(30)
