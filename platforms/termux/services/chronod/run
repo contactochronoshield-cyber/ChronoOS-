@@ -1,0 +1,2 @@
+#!/data/data/com.termux/files/usr/bin/sh
+exec chrono daemon run 2>&1

@@ -1,0 +1,39 @@
+# Untested on real systemd. Setup: useradd --system --home /var/lib/chronoos --shell /usr/sbin/nologin chrono
+#   install: cp -r chronoos-1.3 /opt/chronoos && systemctl enable --now chronod
+[Unit]
+Description=ChronoD edge agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chrono
+Group=chrono
+StateDirectory=chronoos
+StateDirectoryMode=0700
+Environment=CHRONO_HOME=/var/lib/chronoos
+ExecStartPre=-/bin/rm -f /var/lib/chronoos/chronod.pid
+ExecStart=/usr/bin/python3 /opt/chronoos/chrono daemon run
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

@@ -59,11 +59,19 @@ def cmd_status(a):
     print("ChronoD:", "RUNNING" if (HOME / "chronod.pid").exists() else "STOPPED (agente no implementado aun)")
     print("Init:", "systemd" if c["has_systemd"] else "UNKNOWN")
 
+def _perms_ok():
+    if HOME.exists() and HOME.stat().st_mode & 0o077: return False
+    for n in ("node.ed25519", "queue.db", "config.json", "trust"):
+        f = HOME / n
+        if f.exists() and f.stat().st_mode & 0o077: return False
+    return True
+
 def cmd_doctor(a):
     c = capabilities(); ok = True
     checks = [("python>=3.8", sys.version_info >= (3, 8)),
               ("disco libre >1GB", c["disk_free_gb"] > 1),
-              ("directorio de estado escribible", _writable())]
+              ("directorio de estado escribible", _writable()),
+              ("claves y datos privados sin acceso de otros usuarios", _perms_ok())]
     for name, passed in checks:
         print(("[OK]  " if passed else "[FAIL]"), name); ok &= passed
     for k in ("has_git", "has_wireguard", "has_systemd", "has_gpu_nvidia"):
@@ -88,6 +96,7 @@ def cmd_logs(a):
 def cmd_caps(a): print(json.dumps(capabilities(), indent=2))
 
 def main():
+    os.umask(0o077)
     p = argparse.ArgumentParser(prog="chrono", description="ChronoOS Anywhere")
     sp = p.add_subparsers(dest="cmd")
     for n, f in [("version", cmd_version), ("status", cmd_status), ("doctor", cmd_doctor),

@@ -1,0 +1,40 @@
+# Untested on real systemd. Enroll nodes as the service user:
+#   sudo -u chrono env CHRONO_SERVER_HOME=/var/lib/chronoos-server /opt/chronoos/chrono server enroll ID PUB
+# The TLS certificate is created on first start; read its pin with: ... chrono server pin
+[Unit]
+Description=ChronoOS receiver (TLS)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chrono
+Group=chrono
+StateDirectory=chronoos-server
+StateDirectoryMode=0700
+Environment=CHRONO_HOME=/var/lib/chronoos-server
+Environment=CHRONO_SERVER_HOME=/var/lib/chronoos-server
+ExecStart=/usr/bin/python3 /opt/chronoos/chrono server run --tls --host 0.0.0.0 --port 8787
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

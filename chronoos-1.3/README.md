@@ -51,3 +51,14 @@ The node points to the receiver via ~/.chronoos/config.json: {"sync_url": "http:
 - The node private key (~/.chronoos/node.ed25519, mode 600) never leaves the device.
 - The publisher private key must be kept offline, away from nodes and servers.
 - A compromised server cannot forge node events: it holds no node private keys.
+
+## chronoctl integration
+
+- ChronoD names its process `chronod`, so `chronoctl status`, `services` and `stop chronod` manage it.
+- `chronoctl` delegates `doctor`, `caps`, `node`, `event`, `queue`, `sync`, `daemon`, `server`, `publisher` and `update` to `chrono`, which must be in PATH.
+
+## Hardening
+
+- Receiver with TLS and key pinning: `chrono server run --tls --host 0.0.0.0`; nodes set `{"sync_url": "https://host:8787/", "server_pin": "<chrono server pin>"}`
+- `chrono harden` fixes file permissions, `chrono maintenance` prunes old data, `chrono daemon run` runs in the foreground for service managers
+- See [SECURITY-AND-READINESS.md](SECURITY-AND-READINESS.md) for what is verified and what still blocks industrial use
