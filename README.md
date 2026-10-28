@@ -9,8 +9,11 @@ infraestructura de borde y herramientas de desarrollo.
 **Infraestructura y telecomunicaciones:** Chrono Shield Networks  
 **Licencias y autorizaciones:** contactochronoshield@gmail.com
 
-> Los componentes tienen diferentes niveles de madurez. Que exista código
-> o una demo no significa que esté auditado ni listo para producción.
+ChronoOS está listo para que desarrolladores, equipos técnicos y organizaciones
+conozcan sus capacidades, ejecuten sus demostraciones y evalúen sus herramientas.
+Su ecosistema integra componentes de ciberseguridad, sistemas, conectividad,
+análisis de eventos, IoT y computación de borde. La documentación de cada módulo
+guía su evaluación e integración.
 
 ## 1. Componentes del proyecto
 
