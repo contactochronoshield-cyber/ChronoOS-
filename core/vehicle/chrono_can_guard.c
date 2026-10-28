@@ -24,6 +24,9 @@
  */
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -52,7 +55,35 @@ static void log_ledger(const char *type, const char *details)
         return;
     }
 
-    int rc = chrono_ledger_append(type, details);
+    int rc = -1;
+    char ledger_path[4096];
+    ssize_t path_len = readlink(
+        "/proc/self/exe", ledger_path, sizeof(ledger_path) - 1);
+
+    if (path_len > 0 &&
+        (size_t)path_len < sizeof(ledger_path)) {
+        ledger_path[path_len] = '\0';
+        char *slash = strrchr(ledger_path, '/');
+
+        if (slash != NULL) {
+            strcpy(slash + 1, "chrono-ledger");
+            pid_t child = fork();
+
+            if (child == 0) {
+                execl(ledger_path, "chrono-ledger",
+                      "append", type, details, (char *)NULL);
+                _exit(127);
+            }
+
+            if (child > 0) {
+                int status;
+                if (waitpid(child, &status, 0) == child &&
+                    WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                    rc = 0;
+                }
+            }
+        }
+    }
 
     if (rc != 0) {
         fprintf(stderr,
