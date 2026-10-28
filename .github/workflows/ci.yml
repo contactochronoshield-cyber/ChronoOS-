@@ -29,7 +29,7 @@ jobs:
             -name "*.sh" \
             -not -path "./.git/*" \
             -print0 |
-          xargs -0 -r shellcheck -S error -S error
+          xargs -0 -r shellcheck -S error -S error -S error
 
   syntax:
     name: Shell Syntax
@@ -97,10 +97,9 @@ jobs:
         run: |
           make check
 
-      - name: Run Make Test
-        run: |
-          make test
-
       - name: Run Make Build
         run: |
           make build
+      - name: Run Make Test
+        run: |
+          make test
