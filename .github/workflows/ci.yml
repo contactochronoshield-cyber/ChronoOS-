@@ -29,7 +29,7 @@ jobs:
             -name "*.sh" \
             -not -path "./.git/*" \
             -print0 |
-          xargs -0 -r shellcheck -S error
+          xargs -0 -r shellcheck -S error -S error
 
   syntax:
     name: Shell Syntax
@@ -90,6 +90,7 @@ jobs:
             gcc \
             make \
             file \
+            libssl-dev \
             libssl-dev
 
       - name: Run Make Check
