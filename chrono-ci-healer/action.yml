@@ -1,0 +1,21 @@
+name: Chrono CI Healer
+description: Diagnose common CI failures from a log without modifying project files.
+inputs:
+  log_path:
+    description: Path to a CI log file available in the runner.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Diagnose CI log
+      shell: bash
+      env:
+        INPUT_LOG_PATH: ${{ inputs.log_path }}
+      run: |
+        set -euo pipefail
+        test -f "$INPUT_LOG_PATH" || {
+          echo "::error::CI log not found"
+          exit 2
+        }
+        python3 "$GITHUB_ACTION_PATH/chrono_ci_healer.py" \
+          diagnose "$INPUT_LOG_PATH"
