@@ -62,3 +62,7 @@ The node points to the receiver via ~/.chronoos/config.json: {"sync_url": "http:
 - Receiver with TLS and key pinning: `chrono server run --tls --host 0.0.0.0`; nodes set `{"sync_url": "https://host:8787/", "server_pin": "<chrono server pin>"}`
 - `chrono harden` fixes file permissions, `chrono maintenance` prunes old data, `chrono daemon run` runs in the foreground for service managers
 - See [SECURITY-AND-READINESS.md](SECURITY-AND-READINESS.md) for what is verified and what still blocks industrial use
+
+## Coming in 1.4
+
+The 1.4 plan (fleet management, hardware-backed keys, post-quantum signatures, edge cloud lab and more) is in [docs/ROADMAP-1.4.md](../docs/ROADMAP-1.4.md). First slice, as a preview: `chrono fleet list|summary|show|export` gives a read-only view of every device known to the receiver (tested with 1,000 simulated devices).

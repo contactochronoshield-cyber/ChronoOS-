@@ -2,7 +2,7 @@
 import os, sys, json, platform, shutil, socket, time, argparse
 from pathlib import Path
 
-VERSION = "1.3.0-dev"
+VERSION = "1.3.0"
 HOME = Path(os.environ.get("CHRONO_HOME", Path.home() / ".chronoos"))
 LOG = HOME / "events.log"
 
@@ -104,8 +104,8 @@ def main():
         sp.add_parser(n).set_defaults(fn=f)
     l = sp.add_parser("logs"); l.add_argument("-n", type=int, default=20); l.set_defaults(fn=cmd_logs)
     try:
-        from chronoos import agent, server, identity
-        agent.register(sp); server.register(sp); identity.register(sp)
+        from chronoos import agent, server, identity, fleet
+        agent.register(sp); server.register(sp); identity.register(sp); fleet.register(sp)
     except ImportError as e:
         print('aviso: ChronoD/server/update no disponibles (falta dependencia):', e, file=sys.stderr)
     a = p.parse_args()

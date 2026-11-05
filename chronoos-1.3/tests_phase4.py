@@ -63,7 +63,7 @@ try:
     bad(run("update", "rollback"), "no hay update previa")                         # un solo nivel, falla limpio
     h2 = t + "/node2"                                                              # rollback a la version base
     run("update", "trust", open(pk + "/publisher.pub").read(), home=h2)
-    ok(run("update", "apply", p1, home=h2), "verificada"); ok(run("update", "rollback", home=h2), "1.3.0-dev")
+    ok(run("update", "apply", p1, home=h2), "verificada"); ok(run("update", "rollback", home=h2), "1.3.0")
     # eventos de update quedan registrados
     assert "rechazada" in run("logs", "-n", "30").stdout
     print("FASE 4: TODAS LAS PRUEBAS OK")
