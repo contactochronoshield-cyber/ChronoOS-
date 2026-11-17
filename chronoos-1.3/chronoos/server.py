@@ -1,5 +1,5 @@
 """ChronoOS server: Ed25519 por nodo, TLS con pin, deduplicacion; solo claves publicas."""
-import os, json, hashlib, sqlite3, ssl, http.server
+import os, sys, json, hashlib, sqlite3, ssl, http.server
 from pathlib import Path
 from chronoos.cli import HOME
 from chronoos import identity
@@ -97,10 +97,16 @@ class H(http.server.BaseHTTPRequestHandler):
         self._r(200, json.dumps({"received": len(rows), "stored": new}))
     def log_message(self, *a): pass
 
+class _Server(http.server.ThreadingHTTPServer):
+    def handle_error(self, request, client_address):
+        # a client that hangs up or fails the handshake is not a server error
+        if isinstance(sys.exc_info()[1], (ConnectionError, ssl.SSLError, TimeoutError)): return
+        super().handle_error(request, client_address)
+
 def run(host, port, tls=False, sans=(), insecure=False):
     if not tls and host not in LOOPBACK and not insecure:
         raise SystemExit("negado: HTTP sin cifrar fuera de localhost. Usa --tls (o --insecure-http bajo tu responsabilidad)")
-    httpd = http.server.ThreadingHTTPServer((host, port), H)
+    httpd = _Server((host, port), H)
     if tls:
         if not (TLSD / "server.crt").exists(): init_tls(sans)
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); ctx.minimum_version = ssl.TLSVersion.TLSv1_2

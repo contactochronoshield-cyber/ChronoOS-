@@ -193,3 +193,12 @@ __pycache__/
 
 # ChronoOS private authentication keys
 security/keys/*.key
+*.backup*
+*.antes-fix
+*-backup-*
+*.bak.*
+
+# Local build artifacts and development backups
+*.pre-final
+*.pre-auth-tpm
+*.pre-hardening

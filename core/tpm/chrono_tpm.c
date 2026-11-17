@@ -1,215 +1,286 @@
-#include "common/chrono_shell_guard.h"
-
-/**
- * ChronoOS - TPM 2.0 Integration Layer
- * 
- * Conecta ChronoOS con el TPM 2.0 del hardware (Beelink N100 ya lo trae
- * integrado, cualquier PC moderno tambien). Reemplaza la atestacion
- * manual por atestacion respaldada en hardware real.
- * 
- * Sin TPM (lo que teniamos antes):
- *   - Las llaves viven en archivos en disco
- *   - Un atacante con acceso fisico puede copiarlas
- *   - La atestacion es solo un hash que podrian falsificar
- * 
- * Con TPM (lo que construimos aqui):
- *   - Las llaves viven DENTRO del chip TPM, nunca salen
- *   - Imposible extraerlas aunque tengan el disco
- *   - La atestacion esta firmada por el fabricante del chip
- *   - Los datos se sellan al estado exacto del boot - si alguien
- *     modifico el kernel, los datos NO se descifran
- * 
- * REQUIERE: tpm2-tools instalado en el Core Box (Linux real)
- *   sudo apt install tpm2-tools libtpm2-pkcs11-1
- * 
- * En Termux/Android: corre en modo simulacion para desarrollo.
- */
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <limits.h>
 
-#define TPM_LOG     "./var/logs/tpm_audit.log"
-#define TPM_NVRAM   0x01000001  // direccion de NV RAM del TPM para la master key
+#define TPM_PARENT "0x81000001"
+#define TPM_DIR "./var/lib/chrono/tpm"
+#define MASTER_KEY "./security/auth/master.key"
 
-void log_ledger(const char *type, const char *details) {
-    char cmd[1024];
-    snprintf(cmd, sizeof(cmd),
-        "./bin/chrono-ledger append \"%s\" \"%s\" 2>/dev/null",
-        type, details);
-    chrono_system_disabled(cmd);
-}
+static int run_cmd(char *const args[]) {
+    pid_t pid = fork();
 
-int tpm_available() {
-    // Verificar si hay TPM real disponible
-    return chrono_system_disabled("tpm2_getrandom 1 > /dev/null 2>&1") == 0;
-}
-
-// Genera entropia verdadera desde el TPM (mejor que /dev/urandom)
-void tpm_get_random(int bytes) {
-    printf("[TPM] Generando %d bytes de entropia verdadera desde hardware...\n", bytes);
-    char cmd[256];
-    snprintf(cmd, sizeof(cmd),
-        "tpm2_getrandom %d --hex 2>/dev/null || "
-        "head -c %d /dev/urandom | xxd -p",
-        bytes, bytes);
-    FILE *f = chrono_popen_disabled(cmd, "r");
-    if (f) {
-        char buf[1024] = {0};
-        fread(buf, 1, sizeof(buf)-1, f);
-        pclose(f);
-        printf("[TPM] Entropia: %s\n", buf);
-        log_ledger("TPM_RANDOM_GENERATED", "bytes=hardware_entropy");
+    if (pid < 0) {
+        perror("[TPM] fork");
+        return -1;
     }
+
+    if (pid == 0) {
+        execvp(args[0], args);
+        _exit(127);
+    }
+
+    int status;
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR) return -1;
+    }
+
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
 }
 
-// Sellar la master.key al estado actual del PCR0+PCR1+PCR7
-// PCR0 = medicion del firmware/BIOS
-// PCR1 = configuracion del firmware
-// PCR7 = Secure Boot
-// Si alguien modifica el boot, el TPM no suelta la llave
-void tpm_seal_master_key() {
-    printf("[TPM] Sellando master.key al estado de boot actual...\n");
-    printf("[TPM] PCR0 (firmware), PCR1 (config), PCR7 (SecureBoot)\n");
+static void log_ledger(const char *event, const char *details) {
+    char *args[] = {
+        "./bin/chrono-ledger",
+        "append",
+        (char *)event,
+        (char *)details,
+        NULL
+    };
 
-    if (!tpm_available()) {
-        printf("[i] TPM no disponible - modo simulacion (normal en Termux)\n");
-        printf("[i] En el Core Box real (Beelink N100), esto sellaria la\n");
-        printf("    llave al estado exacto del boot. Si alguien modifica\n");
-        printf("    el kernel o el initramfs, el TPM no suelta la llave.\n");
-        log_ledger("TPM_SEAL_SIMULATED", "tpm_not_available_using_software_fallback");
+    if (run_cmd(args) != 0)
+        fprintf(stderr, "[TPM] ADVERTENCIA: no se pudo registrar en Ledger\n");
+}
+
+static int tpm_available(void) {
+    char *args[] = {"tpm2_getrandom", "1", "--hex", NULL};
+    return run_cmd(args) == 0;
+}
+
+static int check_parent(void) {
+    char *args[] = {
+        "tpm2_readpublic",
+        "-c", TPM_PARENT,
+        NULL
+    };
+
+    return run_cmd(args) == 0;
+}
+
+static int valid_master_key(void) {
+    struct stat st;
+
+    if (stat(MASTER_KEY, &st) != 0) {
+        fprintf(stderr, "[TPM] No existe master.key\n");
+        return 0;
+    }
+
+    if (!S_ISREG(st.st_mode) || st.st_size != 32) {
+        fprintf(stderr, "[TPM] master.key debe ser un archivo regular de 32 bytes\n");
+        return 0;
+    }
+
+    if ((st.st_mode & 077) != 0) {
+        fprintf(stderr, "[TPM] Permisos inseguros en master.key. Se requiere 600.\n");
+        return 0;
+    }
+
+    return 1;
+}
+
+static int prepare_directory(void) {
+    if (mkdir(TPM_DIR, 0700) != 0 && errno != EEXIST) {
+        perror("[TPM] mkdir");
+        return 0;
+    }
+
+    struct stat st;
+
+    if (stat(TPM_DIR, &st) != 0 ||
+        !S_ISDIR(st.st_mode) ||
+        (st.st_mode & 077) != 0) {
+        fprintf(stderr, "[TPM] Directorio TPM inseguro\n");
+        return 0;
+    }
+
+    return 1;
+}
+
+static void tpm_get_random(int bytes) {
+    if (bytes < 1 || bytes > 64) {
+        fprintf(stderr, "[TPM] Cantidad permitida: 1-64 bytes\n");
         return;
     }
 
-    // Crear politica TPM basada en PCRs actuales
-    chrono_system_disabled("tpm2_createpolicy --policy-pcr --pcr-list sha256:0,1,7 "
-           "--policy /tmp/chrono_tpm_policy.bin 2>/dev/null");
-
-    // Sellar la llave maestra al TPM con esa politica
-    char cmd[1024];
-    snprintf(cmd, sizeof(cmd),
-        "tpm2_create -C 0x81000001 "
-        "-i ./security/auth/master.key "
-        "-u /tmp/chrono_tpm_sealed.pub "
-        "-r /tmp/chrono_tpm_sealed.priv "
-        "-L /tmp/chrono_tpm_policy.bin 2>/dev/null && "
-        "tpm2_load -C 0x81000001 "
-        "-u /tmp/chrono_tpm_sealed.pub "
-        "-r /tmp/chrono_tpm_sealed.priv "
-        "-n /tmp/chrono_tpm_sealed.name 2>/dev/null");
-    chrono_system_disabled(cmd);
-
-    printf("[✓] Llave sellada al hardware TPM\n");
-    printf("[✓] La llave solo se puede usar si el sistema arranco\n");
-    printf("    exactamente como fue configurado. Cualquier modificacion\n");
-    printf("    del kernel, initramfs o BIOS invalida el acceso.\n");
-    log_ledger("TPM_KEY_SEALED", "pcr=0,1,7 hardware=tpm2");
-}
-
-// Medir el estado actual del sistema y registrarlo en el TPM
-void tpm_measure_chrono_system_disabled() {
-    printf("[TPM] Midiendo estado del sistema...\n");
-
     if (!tpm_available()) {
-        printf("[i] TPM no disponible - usando atestacion por software\n");
-        chrono_system_disabled("./bin/chrono-attest-verify 2>/dev/null || "
-               "echo '[i] Atestacion de software como fallback'");
-        log_ledger("TPM_MEASURE_SIMULATED", "software_attestation_fallback");
+        fprintf(stderr, "[TPM] Hardware no disponible. No se declara entropia TPM.\n");
+        log_ledger("TPM_RANDOM_FAILED", "hardware_unavailable");
         return;
     }
 
-    // Leer los PCRs actuales del TPM (mediciones del boot)
-    printf("[TPM] Valores PCR actuales (mediciones del hardware):\n");
-    chrono_system_disabled("tpm2_pcrread sha256:0,1,7 2>/dev/null");
+    char amount[16];
+    snprintf(amount, sizeof(amount), "%d", bytes);
 
-    // Extender un PCR con el hash de nuestros binarios criticos
-    chrono_system_disabled("sha256sum ./bin/chrono-core ./bin/chrono-panic "
-           "./bin/chrono-ledger 2>/dev/null | "
-           "tpm2_pcrevent sha256:8 2>/dev/null");
+    char *args[] = {"tpm2_getrandom", amount, "--hex", NULL};
 
-    printf("[✓] Estado del sistema registrado en el TPM\n");
-    log_ledger("TPM_SYSTEM_MEASURED", "pcr=0,1,7,8 hardware=tpm2");
+    printf("[TPM] Solicitando %d bytes al hardware...\n", bytes);
+
+    if (run_cmd(args) == 0) {
+        printf("\n[TPM] Entropia recibida del TPM.\n");
+        log_ledger("TPM_RANDOM_GENERATED", "source=hardware_tpm2");
+    } else {
+        fprintf(stderr, "[TPM] ERROR obteniendo entropia\n");
+        log_ledger("TPM_RANDOM_FAILED", "tpm_command_failed");
+    }
 }
 
-// Atestacion remota: probar a un tercero que el sistema
-// arranco sin modificaciones, con firma del fabricante del TPM
-void tpm_remote_attestation() {
-    printf("[TPM] Generando prueba de atestacion remota...\n");
-    printf("[i] Esto permite probarle a un cliente que el Core Box\n");
-    printf("    que le entregaste no fue modificado desde el despliegue,\n");
-    printf("    con una firma del fabricante del chip TPM.\n\n");
+static void tpm_seal_master_key(void) {
+    printf("[TPM] Preparando sellado ligado a PCR 0,1,7...\n");
 
-    if (!tpm_available()) {
-        printf("[i] TPM no disponible - en el Core Box real esto generaria\n");
-        printf("    una cotizacion firmada por el fabricante del chip\n");
-        printf("    (Intel, Infineon, STMicroelectronics) que cualquier\n");
-        printf("    auditor puede verificar independientemente.\n");
-        log_ledger("TPM_ATTESTATION_SIMULATED", "requires_hardware_tpm2");
+    if (!tpm_available() || !check_parent()) {
+        fprintf(stderr, "[TPM] TPM o clave padre no disponible.\n");
+        log_ledger("TPM_SEAL_FAILED", "hardware_or_parent_unavailable");
         return;
     }
 
-    // Generar nonce aleatorio para la atestacion (evita ataques de replay)
-    chrono_system_disabled("tpm2_getrandom 32 --hex > /tmp/chrono_nonce.hex 2>/dev/null");
-
-    // Crear cita TPM (quote) firmada por la llave de atestacion del chip
-    chrono_system_disabled("tpm2_quote -c 0x81000002 -l sha256:0,1,7 "
-           "-q $(cat /tmp/chrono_nonce.hex) "
-           "-m /tmp/chrono_quote.msg "
-           "-s /tmp/chrono_quote.sig "
-           "-o /tmp/chrono_pcrs.out 2>/dev/null");
-
-    printf("[✓] Cita TPM generada - firmada por el hardware\n");
-    printf("[✓] Verificable por cualquier auditor independiente\n");
-    log_ledger("TPM_ATTESTATION_GENERATED", "quote_signed_by_hardware");
-}
-
-void tpm_panic_integration() {
-    printf("[TPM] Integrando protocolo de panico con TPM...\n");
-
-    if (!tpm_available()) {
-        printf("[i] En hardware real: el panico invalida las llaves\n");
-        printf("    directamente en el chip TPM - irrecuperable incluso\n");
-        printf("    con acceso fisico al dispositivo.\n");
-        log_ledger("TPM_PANIC_SIMULATED", "requires_hardware_tpm2");
+    if (!valid_master_key() || !prepare_directory()) {
+        log_ledger("TPM_SEAL_FAILED", "master_key_or_directory_invalid");
         return;
     }
 
-    // Eliminar el objeto sellado del TPM - irrecuperable
-    chrono_system_disabled("tpm2_evictcontrol -C o -c 0x81000001 2>/dev/null");
-    printf("[!!!] Llave eliminada del TPM - IRRECUPERABLE\n");
-    printf("[!!!] Ni con acceso fisico al disco se puede recuperar\n");
-    log_ledger("TPM_KEY_EVICTED", "hardware_key_permanently_destroyed");
+    char *policy[] = {
+        "tpm2_createpolicy",
+        "--policy-pcr",
+        "-l", "sha256:0,1,7",
+        "-L", TPM_DIR "/policy.bin",
+        NULL
+    };
+
+    if (run_cmd(policy) != 0) {
+        fprintf(stderr, "[TPM] Fallo creando politica PCR.\n");
+        log_ledger("TPM_SEAL_FAILED", "policy_creation_failed");
+        return;
+    }
+
+    char *create[] = {
+        "tpm2_create",
+        "-C", TPM_PARENT,
+        "-i", MASTER_KEY,
+        "-u", TPM_DIR "/sealed.pub",
+        "-r", TPM_DIR "/sealed.priv",
+        "-L", TPM_DIR "/policy.bin",
+        NULL
+    };
+
+    if (run_cmd(create) != 0) {
+        fprintf(stderr, "[TPM] Fallo creando objeto sellado.\n");
+        log_ledger("TPM_SEAL_FAILED", "object_creation_failed");
+        return;
+    }
+
+    struct stat pub, priv, policy_file;
+
+    if (stat(TPM_DIR "/sealed.pub", &pub) != 0 ||
+        stat(TPM_DIR "/sealed.priv", &priv) != 0 ||
+        stat(TPM_DIR "/policy.bin", &policy_file) != 0 ||
+        pub.st_size == 0 || priv.st_size == 0 ||
+        policy_file.st_size == 0) {
+        fprintf(stderr, "[TPM] Artefactos incompletos.\n");
+        log_ledger("TPM_SEAL_FAILED", "artifact_validation_failed");
+        return;
+    }
+
+    chmod(TPM_DIR "/sealed.pub", 0600);
+    chmod(TPM_DIR "/sealed.priv", 0600);
+    chmod(TPM_DIR "/policy.bin", 0600);
+
+    printf("[TPM] Objetos sellados creados y verificados.\n");
+    printf("[TPM] Todavia se requiere probar load/unseal y recuperacion.\n");
+
+    log_ledger("TPM_SEALED_OBJECT_CREATED", "pcr=sha256:0,1,7");
+}
+
+static void tpm_measure(void) {
+    printf("[TPM] Midiendo PCR actuales...\n");
+
+    if (!tpm_available()) {
+        fprintf(stderr, "[TPM] Hardware no disponible.\n");
+        log_ledger("TPM_MEASURE_FAILED", "hardware_unavailable");
+        return;
+    }
+
+    char *args[] = {
+        "tpm2_pcrread",
+        "sha256:0,1,7",
+        NULL
+    };
+
+    if (run_cmd(args) != 0) {
+        fprintf(stderr, "[TPM] No se pudieron leer los PCR.\n");
+        log_ledger("TPM_MEASURE_FAILED", "pcr_read_failed");
+        return;
+    }
+
+    log_ledger("TPM_PCR_READ", "bank=sha256 pcr=0,1,7");
+}
+
+static void tpm_attest(void) {
+    fprintf(stderr, "[TPM] Atestacion remota bloqueada.\n");
+    fprintf(stderr, "[TPM] Falta provisionar y verificar una AK (Attestation Key).\n");
+    fprintf(stderr, "[TPM] No se generara una prueba ficticia.\n");
+
+    log_ledger("TPM_ATTESTATION_UNAVAILABLE", "attestation_key_not_provisioned");
+}
+
+static void tpm_panic(void) {
+    fprintf(stderr, "[TPM] Operacion destructiva bloqueada.\n");
+    fprintf(stderr, "[TPM] No se eliminaran objetos persistentes sin protocolo de recuperacion.\n");
+
+    log_ledger("TPM_PANIC_BLOCKED", "destructive_operation_requires_recovery_protocol");
 }
 
 int main(int argc, char *argv[]) {
     printf("=== ChronoOS TPM 2.0 Integration ===\n");
 
-    int hw_tpm = tpm_available();
-    printf("Hardware TPM: %s\n\n", hw_tpm ? "DISPONIBLE" : "No disponible (modo simulacion)");
+    int available = tpm_available();
+
+    printf("Hardware TPM: %s\n\n",
+           available ? "DISPONIBLE" : "NO DISPONIBLE");
 
     if (argc < 2) {
-        printf("Uso:\n");
-        printf("  chrono-tpm random <bytes>    Entropia verdadera del chip\n");
-        printf("  chrono-tpm seal              Sellar llave al estado de boot\n");
-        printf("  chrono-tpm measure           Medir estado del sistema\n");
-        printf("  chrono-tpm attest            Atestacion remota verificable\n");
-        printf("  chrono-tpm panic             Destruir llave en hardware\n");
-        return 1;
+        fprintf(stderr,
+            "Uso:\n"
+            " chrono-tpm random <bytes>\n"
+            " chrono-tpm seal\n"
+            " chrono-tpm measure\n"
+            " chrono-tpm attest\n"
+            " chrono-tpm panic\n");
+        return 2;
     }
 
-    if (strcmp(argv[1], "random") == 0)
-        tpm_get_random(argc > 2 ? atoi(argv[2]) : 32);
-    else if (strcmp(argv[1], "seal") == 0)
+    if (strcmp(argv[1], "random") == 0) {
+        char *end = NULL;
+        long n = argc > 2 ? strtol(argv[2], &end, 10) : 32;
+
+        if ((argc > 2 && (!end || *end != '\0')) ||
+            n < 1 || n > 64) {
+            fprintf(stderr, "[TPM] Argumento random invalido.\n");
+            return 2;
+        }
+
+        tpm_get_random((int)n);
+        return 0;
+    }
+
+    if (strcmp(argv[1], "seal") == 0)
         tpm_seal_master_key();
     else if (strcmp(argv[1], "measure") == 0)
-        tpm_measure_chrono_system_disabled();
+        tpm_measure();
     else if (strcmp(argv[1], "attest") == 0)
-        tpm_remote_attestation();
+        tpm_attest();
     else if (strcmp(argv[1], "panic") == 0)
-        tpm_panic_integration();
-    else
-        printf("[!] Comando desconocido\n");
+        tpm_panic();
+    else {
+        fprintf(stderr, "[TPM] Comando desconocido.\n");
+        return 2;
+    }
 
     return 0;
 }

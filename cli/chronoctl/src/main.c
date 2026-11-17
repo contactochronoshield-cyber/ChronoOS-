@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define CHRONO_VERSION "1.1.0-alpha"
+#define CHRONO_VERSION "1.3.0"
 #define SERVICE_NAME "chronod"
 
 static void usage(void)
@@ -22,7 +22,8 @@ static void usage(void)
         "  chronoctl stop chronod\n"
         "  chronoctl restart chronod\n"
         "  chronoctl logs\n"
-        "  chronoctl version\n",
+        "  chronoctl version\n"
+        "  chronoctl doctor|caps|node|event|queue|sync|daemon|server|publisher|update|maintenance|harden|fleet (via chrono)\n",
         CHRONO_VERSION
     );
 }
@@ -240,6 +241,24 @@ int main(int argc, char **argv)
         }
 
         return command_restart(argv[2]);
+    }
+
+    /* ChronoOS 1.3: delegate agent, identity, update and fleet commands to the 'chrono' CLI */
+    {
+        static const char *delegated[] = {
+            "doctor", "caps", "node", "event", "queue", "sync",
+            "daemon", "server", "publisher", "update",
+            "maintenance", "harden", "fleet", NULL
+        };
+        int i;
+
+        for (i = 0; delegated[i] != NULL; i++) {
+            if (strcmp(argv[1], delegated[i]) == 0) {
+                execvp("chrono", argv);
+                perror("chronoctl: cannot run 'chrono'");
+                return 127;
+            }
+        }
     }
 
     fprintf(stderr, "Unknown command: %s\n\n", argv[1]);
