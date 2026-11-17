@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChronoOS · Panel de planta (demo)</title>
+<style>
+:root{--bg:#0e1316;--p:#161d22;--p2:#1d262c;--ln:#2a353c;--tx:#d7e0e5;--mu:#8397a3;--ok:#3fb68b;--wn:#e0a82e;--er:#e5534b;--ac:#4aa3df}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 16px;background:var(--p);border-bottom:1px solid var(--ln);position:sticky;top:0;z-index:2}
+h1{font-size:15px;margin:0;letter-spacing:.05em}h2{font-size:12px;margin:0 0 8px;color:var(--mu);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.sp{flex:1}.mu{color:var(--mu)}.ok{color:var(--ok)}.wn{color:var(--wn)}.er{color:var(--er)}
+select,button{background:var(--p2);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:8px 11px;font:inherit}
+button{cursor:pointer}button:hover{border-color:var(--ac)}
+.demo{color:var(--wn);border:1px solid var(--wn);border-radius:4px;padding:2px 8px;font-size:11px;letter-spacing:.08em}
+main,footer{padding:14px;display:grid;gap:14px;max-width:1400px;margin:auto}
+.card{background:var(--p);border:1px solid var(--ln);border-radius:10px;padding:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.k b{display:block;font-size:28px;font-variant-numeric:tabular-nums}.k span{color:var(--mu);font-size:12px}
+.flow{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.st{flex:1;min-width:118px;background:var(--p2);border:1px solid var(--ln);border-top:3px solid var(--ok);border-radius:8px;padding:8px}
+.st.wn{border-top-color:var(--wn)}.st.er{border-top-color:var(--er)}.st small{color:var(--mu)}.st b{font-size:19px;font-variant-numeric:tabular-nums}
+.cols{display:grid;grid-template-columns:2fr 1fr;gap:14px}@media(max-width:900px){.cols{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}th{color:var(--mu);font-weight:500;text-align:left}td,th{padding:5px 8px;border-bottom:1px solid var(--ln)}
+.al{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--ln);align-items:flex-start}.al button{padding:3px 8px;font-size:12px}
+.sev{width:4px;align-self:stretch;border-radius:2px;background:var(--wn)}.sev.er{background:var(--er)}.sev.ok{background:var(--ok)}
+.tr{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.tr svg{width:100%;height:56px}.tr polyline{fill:none;stroke-width:1.6px;vector-effect:non-scaling-stroke}
+.btns{display:flex;flex-wrap:wrap;gap:8px}footer{color:var(--mu);font-size:12px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><h1>CHRONO<span style="color:var(--ac)">OS</span> · PANEL DE PLANTA</h1>
+<select id="pl" aria-label="Planta"><option value="bot">Embotelladora · Línea 2</option><option value="alu">Laminación de aluminio · Tren 1</option></select>
+<span class="demo">DEMO · DATOS SIMULADOS</span><span class="sp"></span><span id="clk" class="mu"></span></header>
+<main>
+<section class="kpis" id="kp"></section>
+<section class="card"><h2>Línea de producción</h2><div class="flow" id="fl"></div></section>
+<section class="cols">
+<div class="card"><h2>Dispositivos ChronoOS</h2><div style="overflow-x:auto"><table id="tb"></table></div></div>
+<div class="card"><h2>Alarmas y eventos</h2><div id="al"></div></div></section>
+<section class="card"><h2>Tendencias (60 s)</h2><div class="tr" id="tr"></div></section>
+<section class="card"><h2>Simular incidentes de seguridad</h2><div class="btns">
+<button data-a="manip">Intento de manipulación</button><button data-a="lost">Dispositivo perdido</button><button data-a="off">Gateway sin red</button><button data-a="upd">Actualización firmada</button><button data-a="rst">Reiniciar</button></div></section>
+</main>
+<footer>Datos simulados con fines de demostración; planta ficticia, sin marcas de terceros. Ilustra funciones reales de ChronoOS 1.3: identidad firmada, rechazo de eventos alterados, revocación, cola sin red y actualizaciones firmadas. La conexión con PLC/OPC UA y datos reales no forma parte de esta demo. Licencia de evaluación: DEMO-LICENSE.md.</footer>
+<script>
+const P={bot:{pre:"BOT",st:[["Despaletizado","u/min",60,80],["Enjuague","bar",2.2,3],["Llenadora","u/min",900,1100],["Tapadora","N·m",1.6,2.2],["Etiquetado","u/min",880,1080],["Embalaje","caj/min",70,95],["Paletizado","pal/h",18,26]]},
+alu:{pre:"ALU",st:[["Horno","°C",720,760],["Colada","m/min",4,6],["Laminador caliente","kN",900,1200],["Laminador frío","kN",600,900],["Recocido","°C",340,380],["Cortadora","m/min",300,420],["Empaque","bob/h",12,18]]}};
+const $=s=>document.querySelector(s),R=(a,b)=>a+Math.random()*(b-a),pz=n=>String(n).padStart(2,"0");
+let pl="bot",S=[],A=[],forged=0,evps=0,H={};
+function alarm(sev,msg){A.unshift({t:new Date(),sev,msg,ack:false});A.length=Math.min(A.length,40)}
+function init(){const p=P[pl];S=p.st.map((s,i)=>({id:p.pre+"-GW-"+pz(i+1),name:s[0],u:s[1],lo:s[2],hi:s[3],mid:(s[2]+s[3])/2,val:(s[2]+s[3])/2,st:"ok",fw:"1.3.0",age:0,ev:0,q:0,off:0,bad:false}));A=[];forged=0;H={v:[],vb:[],kw:[]};alarm("ok","Sesión de demostración iniciada: datos simulados")}
+function tick(){let n=0;
+ S.forEach(s=>{if(s.st=="rev")return;
+  s.val+=(s.mid-s.val)*.18+R(-1,1)*(s.hi-s.lo)*.035;if(Math.random()<.004)s.val+=(s.hi-s.lo)*.9;
+  const out=s.val<s.lo||s.val>s.hi;if(out&&!s.bad)alarm("wn",s.name+": "+s.val.toFixed(1)+" "+s.u+" fuera de rango ("+s.id+")");s.bad=out;
+  if(s.off>0){s.off--;s.st="off";s.age++;s.q+=1+(Math.random()*3|0);if(!s.off){alarm("ok",s.id+": enlace recuperado, "+s.q+" eventos entregados y verificados");s.ev+=s.q;s.q=0;s.st="ok"}return}
+  s.st="ok";s.age=0;s.ev++;n+=R(.6,1.4)});
+ evps=n;const on=S.filter(s=>s.st=="ok").length,inr=S.filter(s=>s.st!="rev"&&!s.bad).length;
+ H.v.push(100*inr/S.length+R(-1,1));H.vb.push(R(1.2,2.2)+(S.some(s=>s.bad)?1.5:0));H.kw.push(on*R(38,46));
+ for(const k in H)if(H[k].length>60)H[k].shift();
+ draw()}
+const sp=(a,c)=>{const mn=Math.min(...a),d=(Math.max(...a)-mn)||1;return'<svg viewBox="0 0 120 40" preserveAspectRatio="none"><polyline style="stroke:'+c+'" points="'+a.map((v,i)=>(i*120/59).toFixed(1)+","+(36-(v-mn)/d*32).toFixed(1)).join(" ")+'"/></svg>'};
+function draw(){
+ const on=S.filter(s=>s.st=="ok").length,q=S.reduce((a,s)=>a+s.q,0),al=A.filter(a=>a.sev!="ok"&&!a.ack).length,inr=S.filter(s=>s.st!="rev"&&!s.bad).length,oee=Math.round(100*(inr/S.length)*(on/S.length)*.95);
+ const k=(b,l,c)=>'<div class="card k"><b class="'+(c||"")+'">'+b+'</b><span>'+l+'</span></div>';
+ $("#kp").innerHTML=k(on+"/"+S.length,"Dispositivos en línea",on<S.length?"wn":"ok")+k(evps.toFixed(1),"Eventos firmados / s")+k(al,"Alarmas activas",al?"er":"ok")+k(oee+"%","OEE (simulado)")+k(forged,"Manipulaciones rechazadas",forged?"er":"")+k(q,"Eventos en cola sin red",q?"wn":"");
+ $("#fl").innerHTML=S.map(s=>{const nd=s.st=="rev"||s.st=="off",c=nd?"wn":s.bad?"er":"";return'<div class="st '+c+'"><small>'+s.name+'</small><br><b>'+(nd?"—":s.val.toFixed(1))+'</b> <small>'+(nd?(s.st=="rev"?"revocado":"sin red"):s.u)+'</small></div>'}).join("");
+ const T={ok:'<span class="ok">● En línea</span>',off:'<span class="wn">▲ Sin red</span>',rev:'<span class="er">✖ Revocado</span>'};
+ $("#tb").innerHTML='<tr><th>Nodo</th><th>Etapa</th><th>Estado</th><th>Último evento</th><th>Eventos</th><th>Firmware</th></tr>'+S.map(s=>'<tr><td>'+s.id+'</td><td>'+s.name+'</td><td>'+T[s.st]+'</td><td>'+(s.st=="rev"?"—":s.age?s.age+" s":"ahora")+'</td><td>'+s.ev+'</td><td>'+s.fw+' ✓</td></tr>').join("");
+ $("#al").innerHTML=A.map((a,i)=>'<div class="al"><i class="sev '+a.sev+'"></i><div style="flex:1"><small class="mu">'+pz(a.t.getHours())+":"+pz(a.t.getMinutes())+":"+pz(a.t.getSeconds())+'</small><br>'+a.msg+'</div>'+(a.sev!="ok"&&!a.ack?'<button data-k="'+i+'">Reconocer</button>':"")+'</div>').join("");
+ $("#tr").innerHTML=[["Cumplimiento de rango %",H.v,"var(--ok)"],["Vibración mm/s",H.vb,"var(--wn)"],["Consumo kW",H.kw,"var(--ac)"]].map(x=>'<div><small class="mu">'+x[0]+'</small>'+sp(x[1],x[2])+'</div>').join("");
+ $("#clk").textContent=new Date().toLocaleTimeString("es-CO")}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.k!==undefined){A[b.dataset.k].ack=true;return draw()}
+ const a=b.dataset.a,live=S.filter(s=>s.st=="ok"),s=live[Math.random()*live.length|0];
+ if(a=="rst"){init();return draw()}
+ if(a=="upd"){alarm("er","Paquete 1.3.2 sin firma: rechazado");live.forEach(x=>x.fw="1.3.1");alarm("ok","Actualización 1.3.1 firmada: verificada e instalada en "+live.length+" dispositivos")}
+ else if(!s)return;
+ else if(a=="manip"){forged++;alarm("er",s.id+": evento alterado rechazado (firma inválida)")}
+ else if(a=="lost"){s.st="rev";alarm("er",s.id+": dispositivo revocado; su historial se conserva")}
+ else if(a=="off"){s.off=10;alarm("wn",s.id+": sin red; los eventos se guardan y firman localmente")}
+ draw()});
+$("#pl").onchange=e=>{pl=e.target.value;init();draw()};
+init();tick();setInterval(tick,1000);
+</script></body></html>

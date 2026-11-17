@@ -1,0 +1,14 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.chronoshield.chronoos.demo'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.chronoshield.chronoos.demo'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.3.0'
+    }
+    // single source of truth: the dashboard page is bundled as an offline asset
+    sourceSets { main { assets.srcDirs = ['../../dashboard/web'] } }
+}
